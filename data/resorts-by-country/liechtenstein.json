@@ -1,0 +1,36 @@
+[
+  {
+    "id": "resort-malbun-li",
+    "name": "Malbun",
+    "country": "Liechtenstein",
+    "region": "Triesenberg",
+    "altitude_top": 2000,
+    "altitude_base": 1600,
+    "vertical_drop": 400,
+    "slopes_km": 23,
+    "lifts": 7,
+    "lat": 47.1028,
+    "lng": 9.6092,
+    "snowpark": false,
+    "night_skiing": true,
+    "glacier": false,
+    "website": "https://www.bergbahnen.li"
+  },
+  {
+    "id": "resort-steg-li",
+    "name": "Steg",
+    "country": "Liechtenstein",
+    "region": "Triesenberg",
+    "altitude_top": 1600,
+    "altitude_base": 1300,
+    "vertical_drop": 300,
+    "slopes_km": 5,
+    "lifts": 2,
+    "lat": 47.1185,
+    "lng": 9.5748,
+    "snowpark": false,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://www.tourismus.li"
+  }
+]

@@ -1,0 +1,53 @@
+[
+  {
+    "id": "resort-safed-dara-tj",
+    "name": "Safed Dara",
+    "country": "Tajikistan",
+    "region": "Districts of Republican Subordination",
+    "altitude_top": 3000,
+    "altitude_base": 2200,
+    "vertical_drop": 800,
+    "slopes_km": 12,
+    "lifts": 5,
+    "lat": 38.8487,
+    "lng": 68.9735,
+    "snowpark": false,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://safeddara.tj"
+  },
+  {
+    "id": "resort-takob-tj",
+    "name": "Takob Ski Area",
+    "country": "Tajikistan",
+    "region": "Districts of Republican Subordination",
+    "altitude_top": 2600,
+    "altitude_base": 1800,
+    "vertical_drop": 800,
+    "slopes_km": 5,
+    "lifts": 2,
+    "lat": 38.9324,
+    "lng": 68.7806,
+    "snowpark": false,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://visit.tj"
+  },
+  {
+    "id": "resort-varzob-tj",
+    "name": "Varzob Ski Area",
+    "country": "Tajikistan",
+    "region": "Districts of Republican Subordination",
+    "altitude_top": 2500,
+    "altitude_base": 1900,
+    "vertical_drop": 600,
+    "slopes_km": 4,
+    "lifts": 1,
+    "lat": 38.7815,
+    "lng": 68.8224,
+    "snowpark": false,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://tourism.tj"
+  }
+]

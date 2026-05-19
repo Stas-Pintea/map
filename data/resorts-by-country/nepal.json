@@ -1,0 +1,53 @@
+[
+  {
+    "id": "resort-kalinchowk-np",
+    "name": "Kalinchowk",
+    "country": "Nepal",
+    "region": "Bagmati",
+    "altitude_top": 3842,
+    "altitude_base": 3100,
+    "vertical_drop": 742,
+    "slopes_km": 4,
+    "lifts": 1,
+    "lat": 27.7406,
+    "lng": 86.0531,
+    "snowpark": false,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://kalinchowkcablecar.com"
+  },
+  {
+    "id": "resort-phulchoki-np",
+    "name": "Phulchoki",
+    "country": "Nepal",
+    "region": "Bagmati",
+    "altitude_top": 2782,
+    "altitude_base": 2200,
+    "vertical_drop": 582,
+    "slopes_km": 2,
+    "lifts": 0,
+    "lat": 27.5794,
+    "lng": 85.4131,
+    "snowpark": false,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://welcomenepal.com"
+  },
+  {
+    "id": "resort-muktinath-np",
+    "name": "Muktinath",
+    "country": "Nepal",
+    "region": "Gandaki",
+    "altitude_top": 3800,
+    "altitude_base": 3200,
+    "vertical_drop": 600,
+    "slopes_km": 3,
+    "lifts": 0,
+    "lat": 28.8167,
+    "lng": 83.8719,
+    "snowpark": false,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://ntb.gov.np"
+  }
+]

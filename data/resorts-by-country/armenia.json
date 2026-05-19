@@ -1,0 +1,53 @@
+[
+  {
+    "id": "resort-tsaghkadzor-am",
+    "name": "Tsaghkadzor",
+    "country": "Armenia",
+    "region": "Kotayk",
+    "altitude_top": 2819,
+    "altitude_base": 1966,
+    "vertical_drop": 853,
+    "slopes_km": 30,
+    "lifts": 7,
+    "lat": 40.5317,
+    "lng": 44.7202,
+    "snowpark": false,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://www.myler.am"
+  },
+  {
+    "id": "resort-ashotsk-am",
+    "name": "Ashotsk",
+    "country": "Armenia",
+    "region": "Shirak",
+    "altitude_top": 2200,
+    "altitude_base": 2000,
+    "vertical_drop": 200,
+    "slopes_km": 2,
+    "lifts": 1,
+    "lat": 41.0394,
+    "lng": 43.9189,
+    "snowpark": false,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://ashotsk.am"
+  },
+  {
+    "id": "resort-lernanist-am",
+    "name": "Lernanist",
+    "country": "Armenia",
+    "region": "Kotayk",
+    "altitude_top": 2500,
+    "altitude_base": 2100,
+    "vertical_drop": 400,
+    "slopes_km": 5,
+    "lifts": 1,
+    "lat": 40.4012,
+    "lng": 44.7435,
+    "snowpark": false,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://armenia.travel"
+  }
+]
