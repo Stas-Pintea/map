@@ -1,0 +1,36 @@
+[
+  {
+    "id": "resort-tiffindell-za",
+    "name": "Tiffindell",
+    "country": "South Africa",
+    "region": "Eastern Cape",
+    "altitude_top": 2720,
+    "altitude_base": 2410,
+    "vertical_drop": 310,
+    "slopes_km": 2,
+    "lifts": 2,
+    "lat": -30.7184,
+    "lng": 27.9238,
+    "snowpark": true,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://www.tiffindell.co.za"
+  },
+  {
+    "id": "resort-afriski-za",
+    "name": "Afriski Access (South Africa Side)",
+    "country": "South Africa",
+    "region": "Free State",
+    "altitude_top": 3222,
+    "altitude_base": 3022,
+    "vertical_drop": 200,
+    "slopes_km": 1.8,
+    "lifts": 2,
+    "lat": -28.8246,
+    "lng": 28.7287,
+    "snowpark": true,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://www.afriski.net"
+  }
+]

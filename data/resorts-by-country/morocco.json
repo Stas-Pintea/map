@@ -1,0 +1,53 @@
+[
+  {
+    "id": "resort-oukaimeden-ma",
+    "name": "Oukaïmeden",
+    "country": "Morocco",
+    "region": "Marrakesh-Safi",
+    "altitude_top": 3273,
+    "altitude_base": 2600,
+    "vertical_drop": 673,
+    "slopes_km": 20,
+    "lifts": 6,
+    "lat": 31.2065,
+    "lng": -7.8602,
+    "snowpark": false,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://visitmarrakech.com"
+  },
+  {
+    "id": "resort-mischliffen-ma",
+    "name": "Mischliffen",
+    "country": "Morocco",
+    "region": "Fès-Meknès",
+    "altitude_top": 2100,
+    "altitude_base": 1800,
+    "vertical_drop": 300,
+    "slopes_km": 4,
+    "lifts": 2,
+    "lat": 33.4238,
+    "lng": -5.1896,
+    "snowpark": false,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://visitmorocco.com"
+  },
+  {
+    "id": "resort-jbel-habri-ma",
+    "name": "Jbel Habri",
+    "country": "Morocco",
+    "region": "Drâa-Tafilalet",
+    "altitude_top": 2450,
+    "altitude_base": 2100,
+    "vertical_drop": 350,
+    "slopes_km": 3,
+    "lifts": 1,
+    "lat": 32.0118,
+    "lng": -4.9867,
+    "snowpark": false,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://visitmorocco.com"
+  }
+]

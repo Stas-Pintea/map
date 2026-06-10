@@ -1,0 +1,36 @@
+[
+  {
+    "id": "resort-shahdag-az",
+    "name": "Shahdag Mountain Resort",
+    "country": "Azerbaijan",
+    "region": "Qusar",
+    "altitude_top": 2552,
+    "altitude_base": 1435,
+    "vertical_drop": 1117,
+    "slopes_km": 35,
+    "lifts": 17,
+    "lat": 41.3174,
+    "lng": 48.1325,
+    "snowpark": true,
+    "night_skiing": true,
+    "glacier": false,
+    "website": "https://www.shahdag.az"
+  },
+  {
+    "id": "resort-tufandag-az",
+    "name": "Tufandag Mountain Resort",
+    "country": "Azerbaijan",
+    "region": "Gabala",
+    "altitude_top": 1920,
+    "altitude_base": 950,
+    "vertical_drop": 970,
+    "slopes_km": 17,
+    "lifts": 5,
+    "lat": 40.9982,
+    "lng": 47.8700,
+    "snowpark": false,
+    "night_skiing": true,
+    "glacier": false,
+    "website": "https://www.tufandag.az"
+  }
+]

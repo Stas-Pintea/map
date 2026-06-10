@@ -1,0 +1,19 @@
+[
+  {
+    "id": "resort-masikryong-kp",
+    "name": "Masikryong Ski Resort",
+    "country": "North Korea",
+    "region": "Kangwŏn",
+    "altitude_top": 1363,
+    "altitude_base": 768,
+    "vertical_drop": 595,
+    "slopes_km": 17,
+    "lifts": 10,
+    "lat": 39.1556,
+    "lng": 127.2475,
+    "snowpark": false,
+    "night_skiing": true,
+    "glacier": false,
+    "website": "http://www.korea-dpr.com"
+  }
+]

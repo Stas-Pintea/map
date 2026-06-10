@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Карта курортов и аэропортов</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer" />
+  <style>
+    :root {
+      --bg: #0c1117;
+      --panel: #121a23;
+      --text: #e6edf3;
+      --muted: #9fb0c1;
+      --line: #273241;
+      --accent: #4caf83;
+      --accent-soft: #183428;
+      --airport: #5aa9e6;
+      --resort: #f26d6d;
+      --panel-grad-start: #17212d;
+      --block-bg: #0f1620;
+      --control-bg: #0a1118;
+      --track-bg: #2c3a4b;
+      --thumb-border: #0f1620;
+      --route-btn-bg: #183428;
+      --route-btn-border: #25664c;
+      --route-option-bg: #101a24;
+      --route-active: #7dd3fc;
+      --booking-bg: #162434;
+      --booking-border: #3a546d;
+      --booking-text: #d7ecff;
+      --map-curve: #192636;
+    }
+    :root[data-theme="light"] {
+      --bg: #f3f6fb;
+      --panel: #f8fbff;
+      --text: #1f2a36;
+      --muted: #596b7d;
+      --line: #cfd9e5;
+      --accent: #2f8f67;
+      --accent-soft: #d8f1e5;
+      --airport: #2a6f97;
+      --resort: #bc4749;
+      --panel-grad-start: #ffffff;
+      --block-bg: #ffffff;
+      --control-bg: #ffffff;
+      --track-bg: #d6dee8;
+      --thumb-border: #ffffff;
+      --route-btn-bg: #e6f4ec;
+      --route-btn-border: #a8d4bc;
+      --route-option-bg: #f2f7fc;
+      --route-active: #2a6f97;
+      --booking-bg: #e8f1fb;
+      --booking-border: #a7bfd8;
+      --booking-text: #21496a;
+      --map-curve: #eef4fb;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: "Manrope", sans-serif;
+      background: radial-gradient(circle at 10% 10%, var(--map-curve), var(--bg));
+      color: var(--text);
+    }
+    .layout { display: grid; grid-template-columns: 360px 1fr; height: 100vh; }
+    .panel {
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel-grad-start) 0%, var(--panel) 100%);
+      padding: 22px 18px;
+      overflow-y: auto;
+    }
+    .panel h1 { font-size: 1.2rem; margin: 0 0 6px; }
+    .panel p { margin: 0; font-size: 0.92rem; color: var(--muted); line-height: 1.45; }
+    .block { margin-top: 20px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--block-bg); }
+    label { display: flex; align-items: center; gap: 10px; font-weight: 600; cursor: pointer; }
+    input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
+    .range-wrap { margin-top: 12px; }
+    .range-label { display: flex; justify-content: space-between; font-size: 0.86rem; color: var(--muted); margin-bottom: 8px; }
+    .single-range { position: relative; height: 36px; margin-top: 4px; }
+    .single-range-track { position: absolute; top: 15px; left: 0; right: 0; height: 6px; border-radius: 999px; background: var(--track-bg); }
+    .single-range-fill { position: absolute; top: 15px; height: 6px; border-radius: 999px; background: var(--accent); }
+    .single-range input[type="range"] {
+      position: absolute; left: 0; top: 0; width: 100%; height: 36px; margin: 0;
+      background: transparent; pointer-events: none; appearance: none; -webkit-appearance: none;
+    }
+    #minAltitude { z-index: 2; }
+    #maxAltitude { z-index: 3; }
+    .single-range input[type="range"]::-webkit-slider-thumb {
+      pointer-events: auto; -webkit-appearance: none; width: 18px; height: 18px;
+      border-radius: 50%; border: 2px solid var(--thumb-border); background: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent); cursor: pointer;
+    }
+    .single-range input[type="range"]::-moz-range-thumb {
+      pointer-events: auto; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--thumb-border);
+      background: var(--accent); box-shadow: 0 0 0 1px var(--accent); cursor: pointer;
+    }
+    .value { margin-top: 8px; font-size: 0.88rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 6px 8px; text-align: center; }
+    .filter-grid { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .filter-grid input, .altitude-inputs input, .route-controls input, .route-controls select, .route-controls button,
+    .airport-controls input, .airport-controls select {
+      width: 100%; background: var(--control-bg); border: 1px solid var(--line); color: var(--text);
+      border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 0.84rem;
+    }
+    .altitude-inputs {
+      margin-bottom: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .feature-filters { margin-top: 12px; display: grid; gap: 8px; }
+    .feature-filters label { font-size: 0.88rem; font-weight: 500; }
+    .airport-controls { margin-top: 10px; display: grid; gap: 8px; }
+    .airport-controls label { display: grid; gap: 5px; font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+    .airport-controls label span { color: var(--text); }
+    .route-controls { margin-top: 10px; display: grid; gap: 8px; }
+    .route-controls button { background: var(--route-btn-bg); border-color: var(--route-btn-border); cursor: pointer; font-weight: 600; }
+    .route-note { font-size: 0.8rem; color: var(--muted); margin-top: 6px; line-height: 1.35; }
+    .route-list {
+      margin-top: 8px;
+      display: grid;
+      gap: 6px;
+    }
+    .route-option {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px 8px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      background: var(--route-option-bg);
+      color: var(--text);
+    }
+    .route-option.active {
+      border-color: var(--route-active);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--route-active) 35%, transparent) inset;
+    }
+    .legend { margin-top: 16px; display: grid; gap: 8px; font-size: 0.86rem; color: var(--muted); }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-icon { width: 14px; text-align: center; font-size: 0.92rem; }
+    .legend-icon.resort { color: var(--resort); }
+    .legend-icon.airport { color: var(--airport); }
+    .poi-icon { width: 24px; height: 24px; border-radius: 999px; display: flex; align-items: center; justify-content: center; color: #fff; border: 2px solid var(--thumb-border); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35); font-size: 11px; }
+    .poi-icon.resort { background: var(--resort); }
+    .poi-icon.airport { background: var(--airport); }
+    .popup-actions {
+      display: grid;
+      gap: 8px;
+      min-width: 190px;
+      margin-top: 10px;
+    }
+    .popup-action {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--route-btn-border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: var(--route-btn-bg);
+      color: var(--text);
+      font: inherit;
+      font-size: 0.84rem;
+      font-weight: 700;
+      line-height: 1.2;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    }
+    .popup-action:hover,
+    .popup-action:focus-visible {
+      transform: translateY(-1px);
+      border-color: var(--route-active);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+      outline: none;
+    }
+    .popup-action i {
+      width: 18px;
+      color: var(--accent);
+      text-align: center;
+    }
+    .popup-action.secondary {
+      background: var(--route-option-bg);
+      border-color: var(--line);
+      font-weight: 600;
+    }
+    .popup-action.danger i { color: var(--resort); }
+    .status { margin-top: 12px; font-size: 0.83rem; color: var(--muted); line-height: 1.4; }
+    .theme-switch { margin-top: 18px; }
+    .theme-toggle {
+      margin-top: 8px;
+      width: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--control-bg);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 8px;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .theme-toggle .icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .theme-toggle .icon.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .author-note {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: right;
+    }
+    #map { width: 100%; height: 100%; }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      .panel { border-right: none; border-bottom: 1px solid var(--line); }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="panel">
+      <h1><i class="fa-solid fa-sliders"></i> Фильтры карты</h1>
+      <p>Карта использует локальную базу данных (`data/resorts-by-country/*.json`).</p>
+
+      <section class="block">
+        <label><input type="checkbox" id="showResorts" checked /><i class="fa-solid fa-person-skiing legend-icon resort"></i>Горнолыжные курорты</label>
+        <div class="range-wrap">
+          <div class="range-label"><span>Мин. высота</span><span>Макс. высота</span></div>
+          <div class="altitude-inputs">
+            <input id="minAltitudeInput" type="number" min="0" max="5000" step="50" value="0" />
+            <input id="maxAltitudeInput" type="number" min="0" max="5000" step="50" value="5000" />
+          </div>
+          <div class="single-range">
+            <div class="single-range-track"></div>
+            <div class="single-range-fill" id="altitudeFill"></div>
+            <input type="range" id="minAltitude" min="0" max="5000" step="50" value="0" />
+            <input type="range" id="maxAltitude" min="0" max="5000" step="50" value="5000" />
+          </div>
+          <div class="value" id="altitudeValue">Верхняя высота: 0 м — 5000 м</div>
+        </div>
+        <div class="filter-grid">
+          <input id="minSlopesKm" type="number" step="0.1" placeholder="Мин. трассы (км)" />
+          <input id="maxSlopesKm" type="number" step="0.1" placeholder="Макс. трассы (км)" />
+        </div>
+        <div class="feature-filters">
+          <label><input type="checkbox" id="onlyWithLifts" /><i class="fa-solid fa-cable-car"></i> Подъемники</label>
+          <label><input type="checkbox" id="onlySnowpark" /><i class="fa-solid fa-person-skiing"></i> Сноупарк</label>
+          <label><input type="checkbox" id="onlyNightSkiing" /><i class="fa-solid fa-moon"></i> Ночное катание</label>
+          <label><input type="checkbox" id="onlyGlacier" /><i class="fa-solid fa-igloo"></i> Ледник</label>
+          <label><input type="checkbox" id="onlyWithWebsite" /><i class="fa-solid fa-globe"></i> Сайт</label>
+        </div>
+      </section>
+
+      <section class="block">
+        <label><input type="checkbox" id="showAirports" /><i class="fa-solid fa-plane legend-icon airport"></i>Аэропорты</label>
+        <div class="airport-controls">
+          <label>
+            <span>Аэропорт вылета для цен</span>
+            <select id="fareOriginAirport"></select>
+          </label>
+          <div class="route-note">По умолчанию: Chişinău International Airport, Moldova (RMO).</div>
+        </div>
+      </section>
+
+      <section class="block">
+        <label><i class="fa-solid fa-road"></i> Маршрут A -> B</label>
+        <div class="route-controls">
+          <input id="routeCityInput" type="text" placeholder="Город отправления (например, Sofia)" />
+          <input id="routeTargetInput" type="text" placeholder="Точка назначения (город/курорт)" />
+          <button id="buildRouteBtn" type="button"><i class="fa-solid fa-route"></i> Проложить маршрут</button>
+          <button id="clearRouteBtn" type="button"><i class="fa-solid fa-eraser"></i> Очистить маршрут</button>
+        </div>
+        <div class="route-note" id="routeStatus">Маршрут не построен. Можно ввести точки или поставить их правым кликом на карте.</div>
+        <div class="route-list" id="routeList"></div>
+      </section>
+
+      <div class="legend">
+        <div class="legend-item"><i class="fa-solid fa-person-skiing legend-icon resort"></i> Горнолыжный курорт</div>
+        <div class="legend-item"><i class="fa-solid fa-plane legend-icon airport"></i> Международный аэропорт</div>
+      </div>
+      <div class="status" id="status">Загрузка локальной базы...</div>
+      <section class="theme-switch">
+        <label>Тема</label>
+        <button id="themeToggleBtn" class="theme-toggle" type="button" aria-label="Переключить тему">
+          <span id="sunIcon" class="icon"><i class="fa-solid fa-sun"></i></span>
+          <span id="moonIcon" class="icon"><i class="fa-solid fa-moon"></i></span>
+        </button>
+        <div class="author-note">Автор: Pintea Stanislav</div>
+      </section>
+    </aside>
+    <main id="map"></main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    const state = { resorts: [], airports: [], loading: true };
+
+    const map = L.map("map", { worldCopyJump: true }).setView([25, 15], 2);
+    let baseTileLayer = null;
+
+    const resortLayer = L.layerGroup().addTo(map);
+    const airportLayer = L.layerGroup().addTo(map);
+    const routeLayer = L.layerGroup().addTo(map);
+    const routePointLayer = L.layerGroup().addTo(map);
+
+    const showResortsEl = document.getElementById("showResorts");
+    const showAirportsEl = document.getElementById("showAirports");
+    const fareOriginAirportEl = document.getElementById("fareOriginAirport");
+    const minAltitudeEl = document.getElementById("minAltitude");
+    const maxAltitudeEl = document.getElementById("maxAltitude");
+    const minAltitudeInputEl = document.getElementById("minAltitudeInput");
+    const maxAltitudeInputEl = document.getElementById("maxAltitudeInput");
+    const altitudeFillEl = document.getElementById("altitudeFill");
+    const altitudeValueEl = document.getElementById("altitudeValue");
+    const statusEl = document.getElementById("status");
+    const minSlopesKmEl = document.getElementById("minSlopesKm");
+    const maxSlopesKmEl = document.getElementById("maxSlopesKm");
+    const onlyWithLiftsEl = document.getElementById("onlyWithLifts");
+    const onlySnowparkEl = document.getElementById("onlySnowpark");
+    const onlyNightSkiingEl = document.getElementById("onlyNightSkiing");
+    const onlyGlacierEl = document.getElementById("onlyGlacier");
+    const onlyWithWebsiteEl = document.getElementById("onlyWithWebsite");
+    const routeCityInputEl = document.getElementById("routeCityInput");
+    const routeTargetInputEl = document.getElementById("routeTargetInput");
+    const buildRouteBtnEl = document.getElementById("buildRouteBtn");
+    const clearRouteBtnEl = document.getElementById("clearRouteBtn");
+    const routeStatusEl = document.getElementById("routeStatus");
+    const themeToggleBtnEl = document.getElementById("themeToggleBtn");
+    const sunIconEl = document.getElementById("sunIcon");
+    const moonIconEl = document.getElementById("moonIcon");
+    const routeListEl = document.getElementById("routeList");
+    const DEFAULT_FARE_ORIGIN_IATA = "RMO";
+    let routePointA = null;
+    let routePointB = null;
+    let builtRoutes = [];
+    let activeRouteIndex = 0;
+
+    function setMapBaseTheme(theme) {
+      if (baseTileLayer) {
+        map.removeLayer(baseTileLayer);
+      }
+      if (theme === "light") {
+        baseTileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+      } else {
+        baseTileLayer = L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+          maxZoom: 16,
+          attribution: "Tiles &copy; Esri"
+        }).addTo(map);
+      }
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      setMapBaseTheme(theme);
+      localStorage.setItem("mapTheme", theme);
+      sunIconEl.classList.toggle("active", theme === "light");
+      moonIconEl.classList.toggle("active", theme === "dark");
+    }
+
+    function getResortIcon() {
+      return L.divIcon({ className: "", html: '<div class="poi-icon resort"><i class="fa-solid fa-person-skiing"></i></div>', iconSize: [24, 24], iconAnchor: [12, 12] });
+    }
+    function getAirportIcon() {
+      return L.divIcon({ className: "", html: '<div class="poi-icon airport"><i class="fa-solid fa-plane"></i></div>', iconSize: [24, 24], iconAnchor: [12, 12] });
+    }
+
+    function enforceRangeOrder() {
+      if (Number(minAltitudeEl.value) > Number(maxAltitudeEl.value)) {
+        [minAltitudeEl.value, maxAltitudeEl.value] = [maxAltitudeEl.value, minAltitudeEl.value];
+      }
+    }
+
+    function updateStatus() {
+      if (state.loading) {
+        statusEl.textContent = "Загрузка локальной базы...";
+        return;
+      }
+      statusEl.textContent = `Курортов: ${state.resorts.length} | Аэропортов: ${state.airports.length}`;
+    }
+
+    function updateRangeFill() {
+      const min = Number(minAltitudeEl.min);
+      const max = Number(minAltitudeEl.max);
+      const left = ((Number(minAltitudeEl.value) - min) / (max - min)) * 100;
+      const right = ((Number(maxAltitudeEl.value) - min) / (max - min)) * 100;
+      altitudeFillEl.style.left = `${left}%`;
+      altitudeFillEl.style.width = `${right - left}%`;
+    }
+
+    function syncInputsFromSliders() {
+      minAltitudeInputEl.value = minAltitudeEl.value;
+      maxAltitudeInputEl.value = maxAltitudeEl.value;
+    }
+
+    function clampAltitudeInputs() {
+      const min = Number(minAltitudeEl.min);
+      const max = Number(minAltitudeEl.max);
+      let minVal = Number(minAltitudeInputEl.value);
+      let maxVal = Number(maxAltitudeInputEl.value);
+      if (Number.isNaN(minVal)) minVal = Number(minAltitudeEl.value);
+      if (Number.isNaN(maxVal)) maxVal = Number(maxAltitudeEl.value);
+      minVal = Math.max(min, Math.min(max, minVal));
+      maxVal = Math.max(min, Math.min(max, maxVal));
+      if (minVal > maxVal) [minVal, maxVal] = [maxVal, minVal];
+      minAltitudeEl.value = String(minVal);
+      maxAltitudeEl.value = String(maxVal);
+      minAltitudeInputEl.value = String(minVal);
+      maxAltitudeInputEl.value = String(maxVal);
+    }
+
+    function inRange(value, minRaw, maxRaw) {
+      const min = minRaw === "" ? null : Number(minRaw);
+      const max = maxRaw === "" ? null : Number(maxRaw);
+      if (value === null || value === undefined || Number.isNaN(value)) return min === null && max === null;
+      if (min !== null && !Number.isNaN(min) && value < min) return false;
+      if (max !== null && !Number.isNaN(max) && value > max) return false;
+      return true;
+    }
+
+    function drawRoutePoints() {
+      routePointLayer.clearLayers();
+      if (routePointA) {
+        L.marker([routePointA.lat, routePointA.lng]).bindPopup(`<b>Точка A</b><br>${routePointA.label || "Выбрана на карте"}`).addTo(routePointLayer);
+      }
+      if (routePointB) {
+        L.marker([routePointB.lat, routePointB.lng]).bindPopup(`<b>Точка B</b><br>${routePointB.label || "Выбрана на карте"}`).addTo(routePointLayer);
+      }
+    }
+
+    function setRoutePoint(which, point) {
+      if (which === "A") routePointA = point;
+      if (which === "B") routePointB = point;
+      drawRoutePoints();
+      routeStatusEl.textContent = `Точка ${which} установлена`;
+    }
+
+    function buildRoutePointButtons(pointPayload) {
+      const payload = encodeURIComponent(JSON.stringify(pointPayload));
+      return `
+        <div class="popup-actions">
+          <button class="popup-action js-set-route-point" data-point="${payload}" data-which="A" type="button"><i class="fa-solid fa-location-dot"></i><span>Добавить в точку A</span></button>
+          <button class="popup-action secondary js-set-route-point" data-point="${payload}" data-which="B" type="button"><i class="fa-solid fa-map-pin"></i><span>Добавить в точку B</span></button>
+        </div>
+      `;
+    }
+
+    function buildBookingUrl(resort) {
+      const query = `${resort.name} ${resort.country}`.trim();
+      return `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(query)}`;
+    }
+
+    function getFareSettings() {
+      return {
+        origin: fareOriginAirportEl.value || DEFAULT_FARE_ORIGIN_IATA
+      };
+    }
+
+    function airportSearchLabel(iata) {
+      const airport = state.airports.find((item) => item.iata === iata);
+      if (!airport) return iata;
+      if (iata === "RMO") return "Кишинёв";
+      return `${airport.name} ${airport.iata}`;
+    }
+
+    function buildFlightSearchUrl(origin, destination) {
+      const originLabel = airportSearchLabel(origin);
+      const destinationLabel = airportSearchLabel(destination);
+      const query = `рейсы из ${originLabel} в ${destinationLabel}`;
+      return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+    }
+
+    function populateFareOriginAirports() {
+      fareOriginAirportEl.innerHTML = "";
+      const savedOrigin = localStorage.getItem("fareOriginAirport") || DEFAULT_FARE_ORIGIN_IATA;
+      state.airports.forEach((airport) => {
+        if (!airport.iata) return;
+        const option = document.createElement("option");
+        option.value = airport.iata;
+        option.textContent = `${airport.iata} — ${airport.name}, ${airport.country}`;
+        fareOriginAirportEl.appendChild(option);
+      });
+      const hasSavedOrigin = Array.from(fareOriginAirportEl.options).some((option) => option.value === savedOrigin);
+      fareOriginAirportEl.value = hasSavedOrigin ? savedOrigin : DEFAULT_FARE_ORIGIN_IATA;
+    }
+
+    function render() {
+      enforceRangeOrder();
+      syncInputsFromSliders();
+      const minAlt = Number(minAltitudeEl.value);
+      const maxAlt = Number(maxAltitudeEl.value);
+      altitudeValueEl.textContent = `Верхняя высота: ${minAlt} м — ${maxAlt} м`;
+      updateRangeFill();
+
+      resortLayer.clearLayers();
+      airportLayer.clearLayers();
+
+      if (showResortsEl.checked) {
+        state.resorts
+          .filter((r) => r.altitude_top === null || (r.altitude_top >= minAlt && r.altitude_top <= maxAlt))
+          .filter((r) => inRange(r.slopes_km, minSlopesKmEl.value, maxSlopesKmEl.value))
+          .filter((r) => !onlyWithLiftsEl.checked || (r.lifts !== null && r.lifts > 0))
+          .filter((r) => !onlySnowparkEl.checked || r.snowpark)
+          .filter((r) => !onlyNightSkiingEl.checked || r.night_skiing)
+          .filter((r) => !onlyGlacierEl.checked || r.glacier)
+          .filter((r) => !onlyWithWebsiteEl.checked || Boolean(r.website))
+          .forEach((r) => {
+            const top = r.altitude_top === null ? "не указана" : `${r.altitude_top} м`;
+            const base = r.altitude_base === null ? "не указана" : `${r.altitude_base} м`;
+            const region = r.region ? `<br>Регион: ${r.region}` : "";
+            const vertical = r.vertical_drop === null ? "" : `<br><i class="fa-solid fa-up-down"></i> Перепад: ${r.vertical_drop} м`;
+            const slopes = r.slopes_km === null ? "" : `<br><i class="fa-solid fa-road"></i> Трассы: ${r.slopes_km} км`;
+            const lifts = r.lifts === null ? "" : `<br><i class="fa-solid fa-cable-car"></i> Подъемники: ${r.lifts}`;
+            const tags = [r.snowpark ? "сноупарк" : null, r.night_skiing ? "ночное катание" : null, r.glacier ? "ледник" : null].filter(Boolean).join(", ");
+            const tagsText = tags ? `<br> <i class="fa-solid fa-tag"></i> Особенности: ${tags}` : "";
+            const site = r.website ? `<br><a href="${r.website}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe"></i> Сайт</a>` : "";
+            const booking = `<br><a href="${buildBookingUrl(r)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:6px;padding:6px 10px;border:1px solid var(--booking-border);border-radius:6px;text-decoration:none;color:var(--booking-text);background:var(--booking-bg);"><i class="fa-solid fa-hotel"></i> Открыть на Booking.com</a>`;
+            const routeButtons = buildRoutePointButtons({ lat: r.lat, lng: r.lng, label: `${r.name}, ${r.country}` });
+            L.marker([r.lat, r.lng], { icon: getResortIcon() }).bindPopup(`<b>${r.name}</b><br>${r.country}${region}<br> <i class="fa-solid fa-arrow-up"></i> Верхняя высота: ${top}<br><i class="fa-solid fa-arrow-down"></i> Нижняя высота: ${base}${vertical}${slopes}${lifts}${tagsText}${site}${booking}${routeButtons}`).addTo(resortLayer);
+          });
+      }
+
+      if (showAirportsEl.checked) {
+        state.airports.forEach((a) => {
+          const iata = a.iata ? ` (${a.iata})` : "";
+          const routeButtons = buildRoutePointButtons({ lat: a.lat, lng: a.lng, label: `${a.name}${iata}, ${a.country}` });
+          const fareOrigin = getFareSettings().origin;
+          const fareBlock = a.iata
+            ? `<br><div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);"><b><i class="fa-solid fa-ticket"></i> Рейсы из ${fareOrigin}</b><br><a href="${buildFlightSearchUrl(fareOrigin, a.iata)}" target="_blank" rel="noopener noreferrer">Открыть варианты рейсов в Google</a></div>`
+            : "";
+          L.marker([a.lat, a.lng], { icon: getAirportIcon() }).bindPopup(`<b>${a.name}${iata}</b><br>${a.country}${fareBlock}${routeButtons}`).addTo(airportLayer);
+        });
+      }
+    }
+
+    async function geocodeCity(cityName) {
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(cityName)}`;
+      const response = await fetch(url, { headers: { Accept: "application/json" } });
+      if (!response.ok) throw new Error("Не удалось найти город");
+      const data = await response.json();
+      if (!Array.isArray(data) || data.length === 0) throw new Error("Город не найден");
+      return { lat: Number(data[0].lat), lng: Number(data[0].lon), label: data[0].display_name || cityName };
+    }
+
+    async function fetchRoutes(from, to) {
+      const url = `https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?overview=full&geometries=geojson&alternatives=true`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Сервис маршрутов недоступен");
+      const data = await response.json();
+      if (!data.routes || !data.routes.length) throw new Error("Маршрут не найден");
+      return data.routes;
+    }
+
+    function drawRoutes() {
+      routeLayer.clearLayers();
+      if (!builtRoutes.length) return;
+
+      builtRoutes.forEach((route, idx) => {
+        const latlngs = route.geometry.coordinates.map((c) => [c[1], c[0]]);
+        const isActive = idx === activeRouteIndex;
+        const activeColor = getComputedStyle(document.documentElement).getPropertyValue("--route-active").trim() || "#7dd3fc";
+        const mutedColor = document.documentElement.getAttribute("data-theme") === "light" ? "#8fa3b8" : "#4f6b85";
+        const color = isActive ? activeColor : mutedColor;
+        const weight = isActive ? 5 : 3;
+        const opacity = isActive ? 0.95 : 0.65;
+        const distanceKm = (route.distance / 1000).toFixed(1);
+        const durationH = (route.duration / 3600).toFixed(1);
+        const line = L.polyline(latlngs, { color, weight, opacity }).addTo(routeLayer);
+        line.bindTooltip(`Маршрут ${idx + 1}: ${distanceKm} км, ${durationH} ч`, {
+          sticky: true,
+          opacity: 0.95
+        });
+      });
+
+      const active = builtRoutes[activeRouteIndex];
+      const activeLatLngs = active.geometry.coordinates.map((c) => [c[1], c[0]]);
+      map.fitBounds(L.latLngBounds(activeLatLngs), { padding: [30, 30] });
+    }
+
+    function renderRouteList() {
+      routeListEl.innerHTML = "";
+      if (!builtRoutes.length) return;
+
+      builtRoutes.forEach((route, idx) => {
+        const distanceKm = (route.distance / 1000).toFixed(1);
+        const durationH = (route.duration / 3600).toFixed(1);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `route-option${idx === activeRouteIndex ? " active" : ""}`;
+        btn.textContent = `Маршрут ${idx + 1}: ~${distanceKm} км, ~${durationH} ч`;
+        btn.addEventListener("click", () => {
+          activeRouteIndex = idx;
+          drawRoutes();
+          renderRouteList();
+          routeStatusEl.textContent = `Выбран маршрут ${idx + 1} из ${builtRoutes.length}`;
+        });
+        routeListEl.appendChild(btn);
+      });
+    }
+
+    async function buildRoute() {
+      const fromText = routeCityInputEl.value.trim();
+      const toText = routeTargetInputEl.value.trim();
+      if (!fromText && !routePointA) {
+        routeStatusEl.textContent = "Введите точку A или поставьте ее правым кликом на карте";
+        return;
+      }
+      if (!toText && !routePointB) {
+        routeStatusEl.textContent = "Введите точку B или поставьте ее правым кликом на карте";
+        return;
+      }
+
+      routeStatusEl.textContent = "Строю маршрут...";
+      buildRouteBtnEl.disabled = true;
+      try {
+        const from = routePointA || await geocodeCity(fromText);
+        const to = routePointB || await geocodeCity(toText);
+        const routes = await fetchRoutes(from, to);
+        builtRoutes = routes;
+        activeRouteIndex = 0;
+        drawRoutes();
+        renderRouteList();
+        routePointA = from;
+        routePointB = to;
+        drawRoutePoints();
+        routeStatusEl.textContent = `Найдено маршрутов: ${builtRoutes.length}`;
+      } catch (e) {
+        routeStatusEl.textContent = `Не удалось построить маршрут: ${e.message}`;
+      } finally {
+        buildRouteBtnEl.disabled = false;
+      }
+    }
+
+    function clearRoute() {
+      routeLayer.clearLayers();
+      routePointLayer.clearLayers();
+      routePointA = null;
+      routePointB = null;
+      builtRoutes = [];
+      activeRouteIndex = 0;
+      routeListEl.innerHTML = "";
+      routeStatusEl.textContent = "Маршрут не построен";
+    }
+
+    function normalizeResort(r, fallbackCountry) {
+      if (!r || typeof r !== "object") return null;
+      const lat = Number(r.lat);
+      const lng = Number(r.lng);
+      if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+      const top = r.altitude_top === null || r.altitude_top === undefined ? null : Number(r.altitude_top);
+      const base = r.altitude_base === null || r.altitude_base === undefined ? null : Number(r.altitude_base);
+      return {
+        id: String(r.id || `${r.name}-${r.country}`),
+        name: String(r.name || "Курорт"),
+        country: String(r.country || fallbackCountry || "Страна не указана"),
+        region: r.region ? String(r.region) : "",
+        altitude_top: top === null || Number.isNaN(top) ? null : Math.round(top),
+        altitude_base: base === null || Number.isNaN(base) ? null : Math.round(base),
+        vertical_drop: r.vertical_drop === null || r.vertical_drop === undefined || Number.isNaN(Number(r.vertical_drop)) ? null : Math.round(Number(r.vertical_drop)),
+        slopes_km: r.slopes_km === null || r.slopes_km === undefined || Number.isNaN(Number(r.slopes_km)) ? null : Number(r.slopes_km),
+        lifts: r.lifts === null || r.lifts === undefined || Number.isNaN(Number(r.lifts)) ? null : Math.round(Number(r.lifts)),
+        snowpark: Boolean(r.snowpark),
+        night_skiing: Boolean(r.night_skiing),
+        glacier: Boolean(r.glacier),
+        website: r.website ? String(r.website) : "",
+        lat,
+        lng
+      };
+    }
+
+    function normalizeAirport(a) {
+      if (!a || typeof a !== "object") return null;
+      const lat = Number(a.lat);
+      const lng = Number(a.lng);
+      if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+      return {
+        id: String(a.id || `${a.name}-${a.country}`),
+        name: String(a.name || "Аэропорт"),
+        country: String(a.country || "Страна не указана"),
+        iata: a.iata ? String(a.iata) : "",
+        lat,
+        lng
+      };
+    }
+
+    async function loadLocalDb() {
+      state.loading = true;
+      updateStatus();
+
+      const loadJson = (path) => fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
+      const [manifestResp, airportsResp] = await Promise.all([
+        loadJson("./data/resorts-by-country/index.json"),
+        loadJson("./data/airports.json")
+      ]);
+      if (!manifestResp.ok || !airportsResp.ok) throw new Error("Не удалось загрузить локальные JSON-файлы.");
+
+      const [manifest, airportsRaw] = await Promise.all([manifestResp.json(), airportsResp.json()]);
+      const resorts = [];
+
+      if (Array.isArray(manifest)) {
+        const countryResponses = await Promise.all(manifest.map(async (entry) => {
+          if (!entry || !entry.file) return null;
+          try {
+            const resp = await loadJson(entry.file);
+            if (!resp.ok) return null;
+            const countryData = await resp.json();
+            if (Array.isArray(countryData)) return { country: entry.country || "", resorts: countryData };
+            return {
+              country: entry.country || (countryData && countryData.country) || "",
+              resorts: Array.isArray(countryData && countryData.resorts) ? countryData.resorts : []
+            };
+          } catch (e) {
+            console.warn(`Пропущен файл с ошибкой: ${entry.file}`, e);
+            return null;
+          }
+        }));
+
+        countryResponses.forEach((block) => {
+          if (!block) return;
+          block.resorts.forEach((resort) => {
+            const normalized = normalizeResort(resort, block.country);
+            if (normalized) resorts.push(normalized);
+          });
+        });
+      }
+
+      state.resorts = resorts;
+      state.airports = Array.isArray(airportsRaw) ? airportsRaw.map(normalizeAirport).filter(Boolean) : [];
+      populateFareOriginAirports();
+      state.loading = false;
+      updateStatus();
+      render();
+    }
+
+    async function loadCountryBorders() {
+      const response = await fetch("https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json");
+      if (!response.ok) throw new Error("Не удалось загрузить GeoJSON границ стран.");
+      const geojson = await response.json();
+      L.geoJSON(geojson, {
+        style: { color: "#8fa6bf", weight: 1.1, opacity: 0.9, fillOpacity: 0 },
+        interactive: false
+      }).addTo(map);
+    }
+
+    [
+      showResortsEl, showAirportsEl, minAltitudeEl, maxAltitudeEl,
+      minSlopesKmEl, maxSlopesKmEl,
+      onlyWithLiftsEl, onlySnowparkEl, onlyNightSkiingEl, onlyGlacierEl, onlyWithWebsiteEl
+    ].forEach((el) => {
+      el.addEventListener("input", render);
+      el.addEventListener("change", render);
+    });
+    fareOriginAirportEl.addEventListener("change", () => {
+      localStorage.setItem("fareOriginAirport", fareOriginAirportEl.value);
+      render();
+    });
+    [minAltitudeInputEl, maxAltitudeInputEl].forEach((el) => {
+      el.addEventListener("input", () => {
+        clampAltitudeInputs();
+        render();
+      });
+      el.addEventListener("change", () => {
+        clampAltitudeInputs();
+        render();
+      });
+    });
+
+    buildRouteBtnEl.addEventListener("click", buildRoute);
+    clearRouteBtnEl.addEventListener("click", clearRoute);
+    themeToggleBtnEl.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme") || "dark";
+      applyTheme(current === "dark" ? "light" : "dark");
+    });
+    map.on("popupopen", (event) => {
+      const el = event.popup && event.popup.getElement();
+      if (!el) return;
+      const buttons = el.querySelectorAll(".js-set-route-point");
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const rawPoint = btn.getAttribute("data-point");
+          const which = btn.getAttribute("data-which");
+          if (!rawPoint || !which) return;
+          try {
+            const point = JSON.parse(decodeURIComponent(rawPoint));
+            setRoutePoint(which, point);
+            map.closePopup(event.popup);
+          } catch (_) {
+            routeStatusEl.textContent = "Ошибка установки точки маршрута";
+          }
+        });
+      });
+    });
+
+    map.on("contextmenu", (event) => {
+      const { lat, lng } = event.latlng;
+      const popupHtml = `
+        <div class="popup-actions">
+          <button id="setPointABtn" class="popup-action" type="button"><i class="fa-solid fa-location-dot"></i><span>Добавить точку A</span></button>
+          <button id="setPointBBtn" class="popup-action secondary" type="button"><i class="fa-solid fa-map-pin"></i><span>Добавить точку B</span></button>
+          <button id="buildRouteCtxBtn" class="popup-action secondary" type="button"><i class="fa-solid fa-route"></i><span>Проложить маршрут</span></button>
+          <button id="clearRouteCtxBtn" class="popup-action secondary danger" type="button"><i class="fa-solid fa-eraser"></i><span>Очистить маршрут</span></button>
+        </div>
+      `;
+      const popup = L.popup().setLatLng(event.latlng).setContent(popupHtml).openOn(map);
+      setTimeout(() => {
+        const aBtn = document.getElementById("setPointABtn");
+        const bBtn = document.getElementById("setPointBBtn");
+        const buildBtn = document.getElementById("buildRouteCtxBtn");
+        const clearBtn = document.getElementById("clearRouteCtxBtn");
+        if (aBtn) {
+          aBtn.onclick = () => {
+            setRoutePoint("A", { lat, lng, label: `Координаты: ${lat.toFixed(5)}, ${lng.toFixed(5)}` });
+            map.closePopup(popup);
+          };
+        }
+        if (bBtn) {
+          bBtn.onclick = () => {
+            setRoutePoint("B", { lat, lng, label: `Координаты: ${lat.toFixed(5)}, ${lng.toFixed(5)}` });
+            map.closePopup(popup);
+          };
+        }
+        if (buildBtn) {
+          buildBtn.onclick = () => {
+            map.closePopup(popup);
+            buildRoute();
+          };
+        }
+        if (clearBtn) {
+          clearBtn.onclick = () => {
+            map.closePopup(popup);
+            clearRoute();
+          };
+        }
+      }, 0);
+    });
+
+    loadLocalDb().catch((error) => {
+      state.loading = false;
+      statusEl.textContent = "Ошибка загрузки базы. Запустите страницу через локальный сервер.";
+      console.error(error);
+    });
+    loadCountryBorders().catch((error) => console.error(error));
+
+    const savedTheme = localStorage.getItem("mapTheme") || "dark";
+    applyTheme(savedTheme);
+  </script>
+</body>
+</html>

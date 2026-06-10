@@ -1,0 +1,19 @@
+[
+  {
+    "id": "resort-hehuanshan-tw",
+    "name": "Hehuanshan Snow Area",
+    "country": "Taiwan",
+    "region": "Nantou",
+    "altitude_top": 3416,
+    "altitude_base": 3000,
+    "vertical_drop": 416,
+    "slopes_km": 1,
+    "lifts": 0,
+    "lat": 24.1421,
+    "lng": 121.2719,
+    "snowpark": false,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://www.taroko.gov.tw"
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {
+    "id": "resort-afriski-ls",
+    "name": "Afriski Mountain Resort",
+    "country": "Lesotho",
+    "region": "Butha-Buthe",
+    "altitude_top": 3222,
+    "altitude_base": 3022,
+    "vertical_drop": 200,
+    "slopes_km": 1.8,
+    "lifts": 2,
+    "lat": -28.8246,
+    "lng": 28.7287,
+    "snowpark": true,
+    "night_skiing": false,
+    "glacier": false,
+    "website": "https://www.afriski.net"
+  }
+]

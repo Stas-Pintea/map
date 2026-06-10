@@ -1,0 +1,218 @@
+[
+  {
+    "country": "Argentina",
+    "file": "./data/resorts-by-country/argentina.json"
+  },
+  {
+    "country": "Armenia",
+    "file": "./data/resorts-by-country/armenia.json"
+  },
+  {
+    "country": "Australia",
+    "file": "./data/resorts-by-country/australia.json"
+  },
+  {
+    "country": "Austria",
+    "file": "./data/resorts-by-country/austria.json"
+  },
+  {
+    "country": "Azerbaijan",
+    "file": "./data/resorts-by-country/azerbaijan.json"
+  },
+  {
+    "country": "Bosnia and Herzegovina",
+    "file": "./data/resorts-by-country/bosnia-and-herzegovina.json"
+  },
+  {
+    "country": "Bulgaria",
+    "file": "./data/resorts-by-country/bulgaria.json"
+  },
+  {
+    "country": "Canada",
+    "file": "./data/resorts-by-country/canada.json"
+  },
+  {
+    "country": "Chile",
+    "file": "./data/resorts-by-country/chile.json"
+  },
+  {
+    "country": "China",
+    "file": "./data/resorts-by-country/china.json"
+  },
+  {
+    "country": "Croatia",
+    "file": "./data/resorts-by-country/croatia.json"
+  },
+  {
+    "country": "Czech Republic",
+    "file": "./data/resorts-by-country/czech-republic.json"
+  },
+  {
+    "country": "Finland",
+    "file": "./data/resorts-by-country/finland.json"
+  },
+  {
+    "country": "France",
+    "file": "./data/resorts-by-country/france.json"
+  },
+  {
+    "country": "Georgia",
+    "file": "./data/resorts-by-country/georgia.json"
+  },
+  {
+    "country": "Germany",
+    "file": "./data/resorts-by-country/germany.json"
+  },
+  {
+    "country": "Greece",
+    "file": "./data/resorts-by-country/greece.json"
+  },
+  {
+    "country": "India",
+    "file": "./data/resorts-by-country/india.json"
+  },
+  {
+    "country": "Iran",
+    "file": "./data/resorts-by-country/iran.json"
+  },
+  {
+    "country": "Italy",
+    "file": "./data/resorts-by-country/italy.json"
+  },
+  {
+    "country": "Japan",
+    "file": "./data/resorts-by-country/japan.json"
+  },
+  {
+    "country": "Kazakhstan",
+    "file": "./data/resorts-by-country/kazakhstan.json"
+  },
+  {
+    "country": "Kyrgyzstan",
+    "file": "./data/resorts-by-country/kyrgyzstan.json"
+  },
+  {
+    "country": "Lebanon",
+    "file": "./data/resorts-by-country/lebanon.json"
+  },
+  {
+    "country": "Lesotho",
+    "file": "./data/resorts-by-country/lesotho.json"
+  },
+  {
+    "country": "Liechtenstein",
+    "file": "./data/resorts-by-country/liechtenstein.json"
+  },
+  {
+    "country": "Mongolia",
+    "file": "./data/resorts-by-country/mongolia.json"
+  },
+  {
+    "country": "Montenegro",
+    "file": "./data/resorts-by-country/montenegro.json"
+  },
+  {
+    "country": "Morocco",
+    "file": "./data/resorts-by-country/morocco.json"
+  },
+  {
+    "country": "Nepal",
+    "file": "./data/resorts-by-country/nepal.json"
+  },
+  {
+    "country": "Netherlands",
+    "file": "./data/resorts-by-country/netherlands.json"
+  },
+  {
+    "country": "New Zealand",
+    "file": "./data/resorts-by-country/new-zealand.json"
+  },
+  {
+    "country": "North Korea",
+    "file": "./data/resorts-by-country/north-korea.json"
+  },
+  {
+    "country": "North Macedonia",
+    "file": "./data/resorts-by-country/north-macedonia.json"
+  },
+  {
+    "country": "Norway",
+    "file": "./data/resorts-by-country/norway.json"
+  },
+  {
+    "country": "Pakistan",
+    "file": "./data/resorts-by-country/pakistan.json"
+  },
+  {
+    "country": "Poland",
+    "file": "./data/resorts-by-country/poland.json"
+  },
+  {
+    "country": "Romania",
+    "file": "./data/resorts-by-country/romania.json"
+  },
+  {
+    "country": "Russia",
+    "file": "./data/resorts-by-country/russia.json"
+  },
+  {
+    "country": "Serbia",
+    "file": "./data/resorts-by-country/serbia.json"
+  },
+  {
+    "country": "Slovakia",
+    "file": "./data/resorts-by-country/slovakia.json"
+  },
+  {
+    "country": "Slovenia",
+    "file": "./data/resorts-by-country/slovenia.json"
+  },
+  {
+    "country": "South Africa",
+    "file": "./data/resorts-by-country/south-africa.json"
+  },
+  {
+    "country": "South Korea",
+    "file": "./data/resorts-by-country/south-korea.json"
+  },
+  {
+    "country": "Spain",
+    "file": "./data/resorts-by-country/spain.json"
+  },
+  {
+    "country": "Sweden",
+    "file": "./data/resorts-by-country/sweden.json"
+  },
+  {
+    "country": "Switzerland",
+    "file": "./data/resorts-by-country/switzerland.json"
+  },
+  {
+    "country": "Taiwan",
+    "file": "./data/resorts-by-country/taiwan.json"
+  },
+  {
+    "country": "Tajikistan",
+    "file": "./data/resorts-by-country/tajikistan.json"
+  },
+  {
+    "country": "Turkey",
+    "file": "./data/resorts-by-country/turkey.json"
+  },
+  {
+    "country": "Ukraine",
+    "file": "./data/resorts-by-country/ukraine.json"
+  },
+  {
+    "country": "United Kingdom",
+    "file": "./data/resorts-by-country/united-kingdom.json"
+  },
+  {
+    "country": "United States",
+    "file": "./data/resorts-by-country/united-states.json"
+  },
+  {
+    "country": "Uzbekistan",
+    "file": "./data/resorts-by-country/uzbekistan.json"
+  }
+]
