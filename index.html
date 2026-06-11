@@ -340,8 +340,24 @@
       display: grid;
       gap: 6px;
     }
+    .estimate-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .estimate-label i {
+      width: 16px;
+      color: var(--accent);
+      text-align: center;
+    }
     .estimate-cell strong { font-size: 0.88rem; }
     .estimate-cell span { color: var(--muted); }
+    .estimate-cell span i {
+      width: 14px;
+      margin-right: 6px;
+      color: var(--accent);
+      text-align: center;
+    }
     .estimate-flight-leg {
       display: grid;
       gap: 5px;
@@ -355,6 +371,11 @@
       color: var(--muted);
       font-size: 0.78rem;
       font-weight: 700;
+    }
+    .estimate-flight-leg span i {
+      width: 14px;
+      color: var(--accent);
+      text-align: center;
     }
     .estimate-cost-cell {
       display: grid;
@@ -542,51 +563,51 @@
           <table class="estimate-table">
             <thead>
               <tr>
-                <th>Статья</th>
-                <th>Откуда / начало</th>
-                <th>Куда / конец</th>
-                <th>Стоимость</th>
+                <th><span class="estimate-label"><i class="fa-solid fa-list-check"></i>Статья</span></th>
+                <th><span class="estimate-label"><i class="fa-solid fa-play"></i>Откуда / начало</span></th>
+                <th><span class="estimate-label"><i class="fa-solid fa-flag-checkered"></i>Куда / конец</span></th>
+                <th><span class="estimate-label"><i class="fa-solid fa-coins"></i>Стоимость</span></th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td><strong>Перелёт</strong></td>
+                <td><strong class="estimate-label"><i class="fa-solid fa-plane"></i>Перелёт</strong></td>
                 <td>
                   <div class="estimate-cell">
-                    <div class="estimate-flight-leg"><strong id="estimateFlightFrom">—</strong><span>Туда: вылет</span><input id="estimateFlightFromDate" type="datetime-local" /></div>
-                    <div class="estimate-flight-leg"><strong id="estimateFlightReturnFrom">—</strong><span>Обратно: вылет</span><input id="estimateFlightReturnFromDate" type="datetime-local" /></div>
+                    <div class="estimate-flight-leg"><strong id="estimateFlightFrom">—</strong><span><i class="fa-solid fa-plane-departure"></i>Туда: вылет</span><input id="estimateFlightFromDate" type="datetime-local" /></div>
+                    <div class="estimate-flight-leg"><strong id="estimateFlightReturnFrom">—</strong><span><i class="fa-solid fa-plane-departure"></i>Обратно: вылет</span><input id="estimateFlightReturnFromDate" type="datetime-local" /></div>
                   </div>
                 </td>
                 <td>
                   <div class="estimate-cell">
-                    <div class="estimate-flight-leg"><strong id="estimateFlightTo">—</strong><span>Туда: прилёт</span><input id="estimateFlightToDate" type="datetime-local" /></div>
-                    <div class="estimate-flight-leg"><strong id="estimateFlightReturnTo">—</strong><span>Обратно: прилёт</span><input id="estimateFlightReturnToDate" type="datetime-local" /></div>
+                    <div class="estimate-flight-leg"><strong id="estimateFlightTo">—</strong><span><i class="fa-solid fa-plane-arrival"></i>Туда: прилёт</span><input id="estimateFlightToDate" type="datetime-local" /></div>
+                    <div class="estimate-flight-leg"><strong id="estimateFlightReturnTo">—</strong><span><i class="fa-solid fa-plane-arrival"></i>Обратно: прилёт</span><input id="estimateFlightReturnToDate" type="datetime-local" /></div>
                   </div>
                 </td>
                 <td><input id="estimateFlightCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
               </tr>
               <tr>
-                <td><strong>Аренда авто</strong></td>
-                <td><div class="estimate-cell"><span>Получить</span><input id="estimateCarFromDate" type="datetime-local" /></div></td>
-                <td><div class="estimate-cell"><span>Вернуть</span><input id="estimateCarToDate" type="datetime-local" /></div></td>
+                <td><strong class="estimate-label"><i class="fa-solid fa-car"></i>Аренда авто</strong></td>
+                <td><div class="estimate-cell"><span><i class="fa-solid fa-key"></i>Получить</span><input id="estimateCarFromDate" type="datetime-local" /></div></td>
+                <td><div class="estimate-cell"><span><i class="fa-solid fa-rotate-left"></i>Вернуть</span><input id="estimateCarToDate" type="datetime-local" /></div></td>
                 <td><div class="estimate-cost-cell"><input id="estimateCarCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><input id="estimateCarPeople" class="estimate-people" type="number" min="1" step="1" value="1" placeholder="Людей" aria-label="Людей" title="Людей" /></div></td>
               </tr>
               <tr>
-                <td><strong>Проживание</strong></td>
-                <td><div class="estimate-cell"><span>Заезд</span><input id="estimateStayFromDate" type="datetime-local" /></div></td>
-                <td><div class="estimate-cell"><span>Выезд</span><input id="estimateStayToDate" type="datetime-local" /></div></td>
+                <td><strong class="estimate-label"><i class="fa-solid fa-bed"></i>Проживание</strong></td>
+                <td><div class="estimate-cell"><span><i class="fa-solid fa-door-open"></i>Заезд</span><input id="estimateStayFromDate" type="datetime-local" /></div></td>
+                <td><div class="estimate-cell"><span><i class="fa-solid fa-door-closed"></i>Выезд</span><input id="estimateStayToDate" type="datetime-local" /></div></td>
                 <td><div class="estimate-cost-cell"><input id="estimateStayCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><input id="estimateStayPeople" class="estimate-people" type="number" min="1" step="1" value="1" placeholder="Людей" aria-label="Людей" title="Людей" /></div></td>
               </tr>
               <tr>
-                <td><strong>Аренда экипировки</strong></td>
-                <td><div class="estimate-cell"><span>Начало</span><input id="estimateGearFromDate" type="datetime-local" /></div></td>
-                <td><div class="estimate-cell"><span>Конец</span><input id="estimateGearToDate" type="datetime-local" /></div></td>
+                <td><strong class="estimate-label"><i class="fa-solid fa-person-skiing"></i>Аренда экипировки</strong></td>
+                <td><div class="estimate-cell"><span><i class="fa-solid fa-calendar-plus"></i>Начало</span><input id="estimateGearFromDate" type="datetime-local" /></div></td>
+                <td><div class="estimate-cell"><span><i class="fa-solid fa-calendar-minus"></i>Конец</span><input id="estimateGearToDate" type="datetime-local" /></div></td>
                 <td><input id="estimateGearCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
               </tr>
               <tr>
-                <td><strong>Скипас</strong></td>
-                <td><div class="estimate-cell"><span>Начало</span><input id="estimateSkiPassFromDate" type="datetime-local" /></div></td>
-                <td><div class="estimate-cell"><span>Конец</span><input id="estimateSkiPassToDate" type="datetime-local" /></div></td>
+                <td><strong class="estimate-label"><i class="fa-solid fa-ticket"></i>Скипас</strong></td>
+                <td><div class="estimate-cell"><span><i class="fa-solid fa-calendar-plus"></i>Начало</span><input id="estimateSkiPassFromDate" type="datetime-local" /></div></td>
+                <td><div class="estimate-cell"><span><i class="fa-solid fa-calendar-minus"></i>Конец</span><input id="estimateSkiPassToDate" type="datetime-local" /></div></td>
                 <td><input id="estimateSkiPassCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
               </tr>
             </tbody>
