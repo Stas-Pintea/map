@@ -101,6 +101,7 @@
     .value { margin-top: 8px; font-size: 0.88rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 6px 8px; text-align: center; }
     .filter-grid { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .filter-grid input, .altitude-inputs input, .route-controls input, .route-controls select, .route-controls button,
+    .resort-controls select,
     .airport-controls input, .airport-controls select {
       width: 100%; background: var(--control-bg); border: 1px solid var(--line); color: var(--text);
       border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 0.84rem;
@@ -113,6 +114,9 @@
     }
     .feature-filters { margin-top: 12px; display: grid; gap: 8px; }
     .feature-filters label { font-size: 0.88rem; font-weight: 500; }
+    .resort-controls { margin-top: 10px; display: grid; gap: 8px; }
+    .resort-controls label { display: grid; gap: 5px; font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+    .resort-controls label span { color: var(--text); }
     .airport-controls { margin-top: 10px; display: grid; gap: 8px; }
     .airport-controls label { display: grid; gap: 5px; font-size: 0.82rem; color: var(--muted); font-weight: 600; }
     .airport-controls label span { color: var(--text); }
@@ -237,6 +241,14 @@
 
       <section class="block">
         <label><input type="checkbox" id="showResorts" checked /><i class="fa-solid fa-person-skiing legend-icon resort"></i>Горнолыжные курорты</label>
+        <div class="resort-controls">
+          <label>
+            <span>Страна</span>
+            <select id="resortCountryFilter">
+              <option value="">Все страны</option>
+            </select>
+          </label>
+        </div>
         <div class="range-wrap">
           <div class="range-label"><span>Мин. высота</span><span>Макс. высота</span></div>
           <div class="altitude-inputs">
@@ -319,6 +331,7 @@
     const showResortsEl = document.getElementById("showResorts");
     const showAirportsEl = document.getElementById("showAirports");
     const fareOriginAirportEl = document.getElementById("fareOriginAirport");
+    const resortCountryFilterEl = document.getElementById("resortCountryFilter");
     const minAltitudeEl = document.getElementById("minAltitude");
     const maxAltitudeEl = document.getElementById("maxAltitude");
     const minAltitudeInputEl = document.getElementById("minAltitudeInput");
@@ -499,11 +512,26 @@
       fareOriginAirportEl.value = hasSavedOrigin ? savedOrigin : DEFAULT_FARE_ORIGIN_IATA;
     }
 
+    function populateResortCountries() {
+      const savedCountry = localStorage.getItem("resortCountryFilter") || "";
+      const countries = Array.from(new Set(state.resorts.map((resort) => resort.country).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ru"));
+      resortCountryFilterEl.innerHTML = '<option value="">Все страны</option>';
+      countries.forEach((country) => {
+        const option = document.createElement("option");
+        option.value = country;
+        option.textContent = country;
+        resortCountryFilterEl.appendChild(option);
+      });
+      const hasSavedCountry = countries.includes(savedCountry);
+      resortCountryFilterEl.value = hasSavedCountry ? savedCountry : "";
+    }
+
     function render() {
       enforceRangeOrder();
       syncInputsFromSliders();
       const minAlt = Number(minAltitudeEl.value);
       const maxAlt = Number(maxAltitudeEl.value);
+      const selectedCountry = resortCountryFilterEl.value;
       altitudeValueEl.textContent = `Верхняя высота: ${minAlt} м — ${maxAlt} м`;
       updateRangeFill();
 
@@ -512,6 +540,7 @@
 
       if (showResortsEl.checked) {
         state.resorts
+          .filter((r) => !selectedCountry || r.country === selectedCountry)
           .filter((r) => r.altitude_top === null || (r.altitude_top >= minAlt && r.altitude_top <= maxAlt))
           .filter((r) => inRange(r.slopes_km, minSlopesKmEl.value, maxSlopesKmEl.value))
           .filter((r) => !onlyWithLiftsEl.checked || (r.lifts !== null && r.lifts > 0))
@@ -741,6 +770,7 @@
 
       state.resorts = resorts;
       state.airports = Array.isArray(airportsRaw) ? airportsRaw.map(normalizeAirport).filter(Boolean) : [];
+      populateResortCountries();
       populateFareOriginAirports();
       state.loading = false;
       updateStatus();
@@ -758,12 +788,15 @@
     }
 
     [
-      showResortsEl, showAirportsEl, minAltitudeEl, maxAltitudeEl,
+      showResortsEl, showAirportsEl, resortCountryFilterEl, minAltitudeEl, maxAltitudeEl,
       minSlopesKmEl, maxSlopesKmEl,
       onlyWithLiftsEl, onlySnowparkEl, onlyNightSkiingEl, onlyGlacierEl, onlyWithWebsiteEl
     ].forEach((el) => {
       el.addEventListener("input", render);
       el.addEventListener("change", render);
+    });
+    resortCountryFilterEl.addEventListener("change", () => {
+      localStorage.setItem("resortCountryFilter", resortCountryFilterEl.value);
     });
     fareOriginAirportEl.addEventListener("change", () => {
       localStorage.setItem("fareOriginAirport", fareOriginAirportEl.value);
