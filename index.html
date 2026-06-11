@@ -365,6 +365,35 @@
       color: var(--accent);
       text-align: center;
     }
+    .estimate-row-title {
+      display: grid;
+      gap: 8px;
+    }
+    .estimate-action {
+      width: fit-content;
+      max-width: 100%;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--booking-border);
+      border-radius: 8px;
+      padding: 6px 8px;
+      background: var(--booking-bg);
+      color: var(--booking-text);
+      font-size: 0.78rem;
+      font-weight: 800;
+      line-height: 1.2;
+      text-decoration: none;
+    }
+    .estimate-action.disabled {
+      opacity: 0.55;
+      pointer-events: none;
+    }
+    .estimate-action i {
+      color: var(--accent);
+      width: 14px;
+      text-align: center;
+    }
     .estimate-cell strong { font-size: 0.88rem; }
     .estimate-cell span { color: var(--muted); }
     .estimate-cell span i {
@@ -612,7 +641,7 @@
             </thead>
             <tbody>
               <tr>
-                <td><strong class="estimate-label"><i class="fa-solid fa-plane"></i>Перелёт</strong></td>
+                <td><div class="estimate-row-title"><strong class="estimate-label"><i class="fa-solid fa-plane"></i>Перелёт</strong><a id="estimateFlightLink" class="estimate-action disabled" target="_blank" rel="noopener noreferrer" aria-disabled="true"><i class="fa-solid fa-magnifying-glass"></i>Открыть варианты рейсов в Google</a></div></td>
                 <td>
                   <div class="estimate-cell">
                     <div class="estimate-flight-leg"><strong id="estimateFlightFrom">—</strong><span><i class="fa-solid fa-plane-departure"></i>Туда: вылет</span><input id="estimateFlightFromDate" type="datetime-local" /></div>
@@ -628,13 +657,13 @@
                 <td><input id="estimateFlightCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
               </tr>
               <tr>
-                <td><strong class="estimate-label"><i class="fa-solid fa-car"></i>Аренда авто</strong></td>
+                <td><div class="estimate-row-title"><strong class="estimate-label"><i class="fa-solid fa-car"></i>Аренда авто</strong><a id="estimateCarLink" class="estimate-action" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-car-side"></i>Найти авто</a></div></td>
                 <td><div class="estimate-cell"><span><i class="fa-solid fa-key"></i>Получить</span><input id="estimateCarFromDate" type="datetime-local" /></div></td>
                 <td><div class="estimate-cell"><span><i class="fa-solid fa-rotate-left"></i>Вернуть</span><input id="estimateCarToDate" type="datetime-local" /></div></td>
                 <td><div class="estimate-cost-cell"><input id="estimateCarCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><span class="estimate-people-wrap"><i class="fa-solid fa-user"></i><input id="estimateCarPeople" class="estimate-people" type="number" min="1" step="1" value="1" placeholder="Людей" aria-label="Людей" title="Людей" /></span></div></td>
               </tr>
               <tr>
-                <td><strong class="estimate-label"><i class="fa-solid fa-bed"></i>Проживание</strong></td>
+                <td><div class="estimate-row-title"><strong class="estimate-label"><i class="fa-solid fa-bed"></i>Проживание</strong><a id="estimateBookingLink" class="estimate-action disabled" target="_blank" rel="noopener noreferrer" aria-disabled="true"><i class="fa-solid fa-hotel"></i>Перейти на Booking.com</a></div></td>
                 <td><div class="estimate-cell"><span><i class="fa-solid fa-door-open"></i>Заезд</span><input id="estimateStayFromDate" type="datetime-local" /></div></td>
                 <td><div class="estimate-cell"><span><i class="fa-solid fa-door-closed"></i>Выезд</span><input id="estimateStayToDate" type="datetime-local" /></div></td>
                 <td><div class="estimate-cost-cell"><input id="estimateStayCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><span class="estimate-people-wrap"><i class="fa-solid fa-user"></i><input id="estimateStayPeople" class="estimate-people" type="number" min="1" step="1" value="1" placeholder="Людей" aria-label="Людей" title="Людей" /></span></div></td>
@@ -646,7 +675,7 @@
                 <td><input id="estimateGearCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
               </tr>
               <tr>
-                <td><strong class="estimate-label"><i class="fa-solid fa-ticket"></i>Скипас</strong></td>
+                <td><div class="estimate-row-title"><strong class="estimate-label"><i class="fa-solid fa-ticket"></i>Скипас</strong><a id="estimateSkiPassLink" class="estimate-action disabled" target="_blank" rel="noopener noreferrer" aria-disabled="true"><i class="fa-solid fa-globe"></i>Сайт курорта</a></div></td>
                 <td><div class="estimate-cell"><span><i class="fa-solid fa-calendar-plus"></i>Начало</span><input id="estimateSkiPassFromDate" type="datetime-local" /></div></td>
                 <td><div class="estimate-cell"><span><i class="fa-solid fa-calendar-minus"></i>Конец</span><input id="estimateSkiPassToDate" type="datetime-local" /></div></td>
                 <td><input id="estimateSkiPassCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
@@ -713,6 +742,10 @@
     const estimateResortSummaryEl = document.getElementById("estimateResortSummary");
     const estimateTotalEl = document.getElementById("estimateTotal");
     const estimateConvertedTotalEl = document.getElementById("estimateConvertedTotal");
+    const estimateFlightLinkEl = document.getElementById("estimateFlightLink");
+    const estimateCarLinkEl = document.getElementById("estimateCarLink");
+    const estimateBookingLinkEl = document.getElementById("estimateBookingLink");
+    const estimateSkiPassLinkEl = document.getElementById("estimateSkiPassLink");
     const estimateInputs = Array.from(document.querySelectorAll("#estimateModal input"));
     const estimateCostInputs = Array.from(document.querySelectorAll(".estimate-cost"));
     const estimateDateInputs = Array.from(document.querySelectorAll('#estimateModal input[type="datetime-local"]'));
@@ -827,6 +860,7 @@
       if (which === "B") routePointB = point;
       drawRoutePoints();
       updateEstimateResortSummary();
+      updateEstimateActionLinks();
       routeStatusEl.textContent = `Точка ${which} установлена`;
     }
 
@@ -843,6 +877,19 @@
     function buildBookingUrl(resort) {
       const query = `${resort.name} ${resort.country}`.trim();
       return `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(query)}`;
+    }
+
+    function setEstimateActionLink(linkEl, href) {
+      if (!linkEl) return;
+      if (href) {
+        linkEl.href = href;
+        linkEl.classList.remove("disabled");
+        linkEl.setAttribute("aria-disabled", "false");
+        return;
+      }
+      linkEl.removeAttribute("href");
+      linkEl.classList.add("disabled");
+      linkEl.setAttribute("aria-disabled", "true");
     }
 
     function escapeHtml(value) {
@@ -917,6 +964,28 @@
       const destinationLabel = airportSearchLabel(destination);
       const query = `рейсы из ${originLabel} в ${destinationLabel}`;
       return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+    }
+
+    function buildCarRentalUrl() {
+      const { arrival } = getFareSettings();
+      const arrivalAirport = arrival ? findAirportByIata(arrival) : null;
+      const resort = getSelectedRouteResort();
+      let query = "аренда авто";
+      if (arrivalAirport) {
+        query = `аренда авто ${arrivalAirport.name} ${arrivalAirport.iata}`;
+      } else if (resort) {
+        query = `аренда авто ${resort.name} ${resort.country}`;
+      }
+      return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+    }
+
+    function updateEstimateActionLinks() {
+      const { origin, arrival } = getFareSettings();
+      const resort = getSelectedRouteResort();
+      setEstimateActionLink(estimateFlightLinkEl, origin && arrival ? buildFlightSearchUrl(origin, arrival) : "");
+      setEstimateActionLink(estimateCarLinkEl, buildCarRentalUrl());
+      setEstimateActionLink(estimateBookingLinkEl, resort ? buildBookingUrl(resort) : "");
+      setEstimateActionLink(estimateSkiPassLinkEl, resort && resort.website ? resort.website : "");
     }
 
     function estimateAirportLabel(iata) {
@@ -1049,6 +1118,7 @@
     function openEstimateModal() {
       updateEstimateFlightRow();
       updateEstimateResortSummary();
+      updateEstimateActionLinks();
       updateEstimateTotal();
       estimateModalEl.classList.add("open");
       estimateModalEl.setAttribute("aria-hidden", "false");
@@ -1222,7 +1292,8 @@
                 lifts: r.lifts,
                 snowpark: r.snowpark,
                 night_skiing: r.night_skiing,
-                glacier: r.glacier
+                glacier: r.glacier,
+                website: r.website
               }
             });
             L.marker([r.lat, r.lng], { icon: getResortIcon() }).bindPopup(`<b>${r.name}</b><br>${r.country}${region}<br> <i class="fa-solid fa-arrow-up"></i> Верхняя высота: ${top}<br><i class="fa-solid fa-arrow-down"></i> Нижняя высота: ${base}${vertical}${slopes}${lifts}${tagsText}${site}${booking}${routeButtons}`).addTo(resortLayer);
@@ -1338,6 +1409,7 @@
         routePointB = to;
         drawRoutePoints();
         updateEstimateResortSummary();
+        updateEstimateActionLinks();
         routeStatusEl.textContent = `Найдено маршрутов: ${builtRoutes.length}`;
       } catch (e) {
         routeStatusEl.textContent = `Не удалось построить маршрут: ${e.message}`;
@@ -1355,6 +1427,7 @@
       activeRouteIndex = 0;
       routeListEl.innerHTML = "";
       updateEstimateResortSummary();
+      updateEstimateActionLinks();
       routeStatusEl.textContent = "Маршрут не построен";
     }
 
@@ -1445,6 +1518,7 @@
       populateResortCountries();
       populateFareAirports();
       updateEstimateFlightRow();
+      updateEstimateActionLinks();
       state.loading = false;
       updateStatus();
       render();
@@ -1474,12 +1548,14 @@
     fareOriginAirportEl.addEventListener("change", () => {
       localStorage.setItem("fareOriginAirport", fareOriginAirportEl.value);
       updateEstimateFlightRow();
+      updateEstimateActionLinks();
       render();
     });
     fareArrivalAirportEl.addEventListener("change", () => {
       localStorage.setItem("fareArrivalAirport", fareArrivalAirportEl.value);
       updateEstimateFlightRow();
       updateEstimateResortSummary();
+      updateEstimateActionLinks();
       render();
     });
     openEstimateBtnEl.addEventListener("click", openEstimateModal);
@@ -1529,6 +1605,7 @@
           localStorage.setItem("fareArrivalAirport", iata);
           updateEstimateFlightRow();
           updateEstimateResortSummary();
+          updateEstimateActionLinks();
           map.closePopup(event.popup);
           render();
         });
