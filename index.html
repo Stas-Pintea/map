@@ -329,6 +329,50 @@
       font: inherit;
       font-size: 0.82rem;
     }
+    .estimate-date-picker {
+      position: relative;
+      min-width: 150px;
+      min-height: 37px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--control-bg);
+      color: var(--text);
+      padding: 7px 8px;
+      cursor: pointer;
+    }
+    .estimate-date-picker .date-display {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.2;
+    }
+    .estimate-date-picker.has-value .date-display {
+      color: var(--text);
+      font-weight: 700;
+    }
+    .estimate-date-picker i {
+      flex: 0 0 auto;
+      color: var(--accent);
+      font-size: 0.82rem;
+    }
+    .estimate-date-picker input[type="datetime-local"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      min-width: 0;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      opacity: 0;
+      cursor: pointer;
+      pointer-events: none;
+    }
     .estimate-total {
       margin-top: 14px;
       display: flex;
@@ -538,6 +582,7 @@
     const estimateTotalEl = document.getElementById("estimateTotal");
     const estimateInputs = Array.from(document.querySelectorAll("#estimateModal input"));
     const estimateCostInputs = Array.from(document.querySelectorAll(".estimate-cost"));
+    const estimateDateInputs = Array.from(document.querySelectorAll('#estimateModal input[type="datetime-local"]'));
     const DEFAULT_FARE_ORIGIN_IATA = "RMO";
     let routePointA = null;
     let routePointB = null;
@@ -706,11 +751,63 @@
       localStorage.setItem(`estimate:${input.id}`, input.value);
     }
 
+    function formatEstimateDate(value) {
+      if (!value) return "Выбрать";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "Выбрать";
+      return new Intl.DateTimeFormat("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(date);
+    }
+
+    function updateEstimateDateDisplay(input) {
+      const picker = input.closest(".estimate-date-picker");
+      if (!picker) return;
+      const display = picker.querySelector(".date-display");
+      if (display) display.textContent = formatEstimateDate(input.value);
+      picker.classList.toggle("has-value", Boolean(input.value));
+    }
+
+    function openNativeDatePicker(input) {
+      if (typeof input.showPicker === "function") {
+        input.showPicker();
+      } else {
+        input.focus();
+        input.click();
+      }
+    }
+
+    function setupEstimateDateInputs() {
+      estimateDateInputs.forEach((input) => {
+        if (input.closest(".estimate-date-picker")) return;
+        const picker = document.createElement("div");
+        picker.className = "estimate-date-picker";
+        picker.tabIndex = 0;
+        picker.innerHTML = '<span class="date-display">Выбрать</span><i class="fa-solid fa-calendar-days"></i>';
+        input.parentNode.insertBefore(picker, input);
+        picker.appendChild(input);
+        picker.addEventListener("click", () => openNativeDatePicker(input));
+        picker.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          openNativeDatePicker(input);
+        });
+        input.addEventListener("input", () => updateEstimateDateDisplay(input));
+        input.addEventListener("change", () => updateEstimateDateDisplay(input));
+        updateEstimateDateDisplay(input);
+      });
+    }
+
     function loadEstimateInputs() {
       estimateInputs.forEach((input) => {
         const savedValue = localStorage.getItem(`estimate:${input.id}`);
         if (savedValue !== null) input.value = savedValue;
       });
+      estimateDateInputs.forEach(updateEstimateDateDisplay);
       updateEstimateTotal();
     }
 
@@ -1244,6 +1341,7 @@
       statusEl.textContent = "Ошибка загрузки базы. Запустите страницу через локальный сервер.";
       console.error(error);
     });
+    setupEstimateDateInputs();
     loadEstimateInputs();
     loadCountryBorders().catch((error) => console.error(error));
 
