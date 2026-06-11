@@ -394,6 +394,33 @@
       width: 14px;
       text-align: center;
     }
+    .estimate-custom-name {
+      margin-top: 8px;
+    }
+    .estimate-tools {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .estimate-tool-btn {
+      border: 1px solid var(--booking-border);
+      border-radius: 10px;
+      padding: 9px 12px;
+      background: var(--booking-bg);
+      color: var(--booking-text);
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: 850;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .estimate-tool-btn i {
+      color: var(--accent);
+    }
     .estimate-cell strong { font-size: 0.88rem; }
     .estimate-cell span { color: var(--muted); }
     .estimate-cell span i {
@@ -639,7 +666,7 @@
                 <th><span class="estimate-label"><i class="fa-solid fa-coins"></i>Стоимость</span></th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="estimateTableBody">
               <tr>
                 <td><div class="estimate-row-title"><strong class="estimate-label"><i class="fa-solid fa-plane"></i>Перелёт</strong><a id="estimateFlightLink" class="estimate-action disabled" target="_blank" rel="noopener noreferrer" aria-disabled="true"><i class="fa-solid fa-magnifying-glass"></i>Открыть варианты рейсов в Google</a></div></td>
                 <td>
@@ -669,6 +696,12 @@
                 <td><div class="estimate-cost-cell"><input id="estimateStayCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><span class="estimate-people-wrap"><i class="fa-solid fa-user"></i><input id="estimateStayPeople" class="estimate-people" type="number" min="1" step="1" value="1" placeholder="Людей" aria-label="Людей" title="Людей" /></span></div></td>
               </tr>
               <tr>
+                <td><strong class="estimate-label"><i class="fa-solid fa-utensils"></i>Питание</strong></td>
+                <td><div class="estimate-cell"><span><i class="fa-solid fa-calendar-plus"></i>Начало</span><input id="estimateFoodFromDate" type="datetime-local" /></div></td>
+                <td><div class="estimate-cell"><span><i class="fa-solid fa-calendar-minus"></i>Конец</span><input id="estimateFoodToDate" type="datetime-local" /></div></td>
+                <td><input id="estimateFoodCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
+              </tr>
+              <tr>
                 <td><strong class="estimate-label"><i class="fa-solid fa-person-skiing"></i>Аренда экипировки</strong></td>
                 <td><div class="estimate-cell"><span><i class="fa-solid fa-calendar-plus"></i>Начало</span><input id="estimateGearFromDate" type="datetime-local" /></div></td>
                 <td><div class="estimate-cell"><span><i class="fa-solid fa-calendar-minus"></i>Конец</span><input id="estimateGearToDate" type="datetime-local" /></div></td>
@@ -682,6 +715,10 @@
               </tr>
             </tbody>
           </table>
+        </div>
+        <div class="estimate-tools">
+          <button id="addCustomEstimateRowBtn" class="estimate-tool-btn" type="button"><i class="fa-solid fa-plus"></i>Добавить строку</button>
+          <button id="saveEstimateScreenshotBtn" class="estimate-tool-btn" type="button"><i class="fa-solid fa-camera"></i>Сохранить скриншот таблицы</button>
         </div>
         <div class="estimate-total">
           <div class="estimate-total-main"><span>Итого:</span><span id="estimateTotal">€0</span></div>
@@ -740,15 +777,18 @@
     const estimateFlightReturnFromEl = document.getElementById("estimateFlightReturnFrom");
     const estimateFlightReturnToEl = document.getElementById("estimateFlightReturnTo");
     const estimateResortSummaryEl = document.getElementById("estimateResortSummary");
+    const estimateTableBodyEl = document.getElementById("estimateTableBody");
     const estimateTotalEl = document.getElementById("estimateTotal");
     const estimateConvertedTotalEl = document.getElementById("estimateConvertedTotal");
     const estimateFlightLinkEl = document.getElementById("estimateFlightLink");
     const estimateCarLinkEl = document.getElementById("estimateCarLink");
     const estimateBookingLinkEl = document.getElementById("estimateBookingLink");
     const estimateSkiPassLinkEl = document.getElementById("estimateSkiPassLink");
-    const estimateInputs = Array.from(document.querySelectorAll("#estimateModal input"));
-    const estimateCostInputs = Array.from(document.querySelectorAll(".estimate-cost"));
-    const estimateDateInputs = Array.from(document.querySelectorAll('#estimateModal input[type="datetime-local"]'));
+    const addCustomEstimateRowBtnEl = document.getElementById("addCustomEstimateRowBtn");
+    const saveEstimateScreenshotBtnEl = document.getElementById("saveEstimateScreenshotBtn");
+    let estimateInputs = Array.from(document.querySelectorAll("#estimateModal input"));
+    let estimateCostInputs = Array.from(document.querySelectorAll(".estimate-cost"));
+    let estimateDateInputs = Array.from(document.querySelectorAll('#estimateModal input[type="datetime-local"]'));
     const estimateCarCostEl = document.getElementById("estimateCarCost");
     const estimateCarPeopleEl = document.getElementById("estimateCarPeople");
     const estimateStayCostEl = document.getElementById("estimateStayCost");
@@ -759,6 +799,7 @@
     let builtRoutes = [];
     let activeRouteIndex = 0;
     let estimateExchangeRates = null;
+    let customEstimateRowCounter = 0;
 
     function setMapBaseTheme(theme) {
       if (baseTileLayer) {
@@ -1011,7 +1052,14 @@
       }).format(value);
     }
 
+    function refreshEstimateInputCollections() {
+      estimateInputs = Array.from(document.querySelectorAll("#estimateModal input"));
+      estimateCostInputs = Array.from(document.querySelectorAll(".estimate-cost"));
+      estimateDateInputs = Array.from(document.querySelectorAll('#estimateModal input[type="datetime-local"]'));
+    }
+
     function updateEstimateTotal() {
+      refreshEstimateInputCollections();
       const sharedInputs = new Set([estimateCarCostEl, estimateStayCostEl]);
       const total = estimateCostInputs.reduce((sum, input) => {
         const value = Number(input.value);
@@ -1049,7 +1097,58 @@
     }
 
     function saveEstimateInput(input) {
+      if (!input.id) return;
       localStorage.setItem(`estimate:${input.id}`, input.value);
+    }
+
+    function getCustomEstimateRows() {
+      try {
+        const rows = JSON.parse(localStorage.getItem("estimate:customRows") || "[]");
+        return Array.isArray(rows) ? rows : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveCustomEstimateRows() {
+      const rows = Array.from(document.querySelectorAll(".estimate-custom-row")).map((row) => ({
+        id: row.dataset.rowId,
+        name: row.querySelector(".estimate-custom-name")?.value || "",
+        cost: row.querySelector(".estimate-custom-cost")?.value || ""
+      }));
+      localStorage.setItem("estimate:customRows", JSON.stringify(rows));
+    }
+
+    function createCustomEstimateRow(rowData = {}) {
+      const rowId = rowData.id || `custom-${Date.now()}-${customEstimateRowCounter++}`;
+      const row = document.createElement("tr");
+      row.className = "estimate-custom-row";
+      row.dataset.rowId = rowId;
+      row.innerHTML = `
+        <td>
+          <strong class="estimate-label"><i class="fa-solid fa-pen"></i>Своя строка</strong>
+          <input id="estimateCustomName-${rowId}" class="estimate-custom-name" type="text" placeholder="Название" />
+        </td>
+        <td><div class="estimate-cell"><span><i class="fa-solid fa-minus"></i>—</span></div></td>
+        <td><div class="estimate-cell"><span><i class="fa-solid fa-minus"></i>—</span></div></td>
+        <td><input id="estimateCustomCost-${rowId}" class="estimate-cost estimate-custom-cost" type="number" min="0" step="1" placeholder="0" /></td>
+      `;
+      row.querySelector(".estimate-custom-name").value = rowData.name || "";
+      row.querySelector(".estimate-custom-cost").value = rowData.cost || "";
+      estimateTableBodyEl.appendChild(row);
+      refreshEstimateInputCollections();
+      return row;
+    }
+
+    function loadCustomEstimateRows() {
+      getCustomEstimateRows().forEach(createCustomEstimateRow);
+      refreshEstimateInputCollections();
+    }
+
+    function addCustomEstimateRow() {
+      createCustomEstimateRow();
+      saveCustomEstimateRows();
+      updateEstimateTotal();
     }
 
     function formatEstimateDate(value) {
@@ -1104,6 +1203,7 @@
     }
 
     function loadEstimateInputs() {
+      refreshEstimateInputCollections();
       estimateInputs.forEach((input) => {
         const savedValue = localStorage.getItem(`estimate:${input.id}`);
         if (savedValue !== null) input.value = savedValue;
@@ -1113,6 +1213,124 @@
       });
       estimateDateInputs.forEach(updateEstimateDateDisplay);
       updateEstimateTotal();
+    }
+
+    function getEstimateCellText(cell) {
+      const customNameInput = cell.querySelector(".estimate-custom-name");
+      if (customNameInput) return customNameInput.value.trim() || "Своя строка";
+      const textParts = [];
+      cell.querySelectorAll("strong, span.date-display, .estimate-cell span, .estimate-custom-name").forEach((node) => {
+        const value = node.matches("input") ? node.value : node.textContent;
+        const cleanValue = String(value || "").replace(/\s+/g, " ").trim();
+        if (cleanValue && cleanValue !== "Выбрать") textParts.push(cleanValue);
+      });
+      const directInput = cell.querySelector(":scope > input.estimate-cost, .estimate-cost-cell > input.estimate-cost");
+      if (directInput) {
+        const cost = Number(directInput.value) || 0;
+        textParts.push(formatEstimateCurrency(cost, "EUR"));
+      }
+      return textParts.length ? textParts.join(" · ") : "—";
+    }
+
+    function getEstimateExportRows() {
+      return Array.from(estimateTableBodyEl.querySelectorAll("tr")).map((row) => {
+        const cells = Array.from(row.cells);
+        return [
+          getEstimateCellText(cells[0]),
+          getEstimateCellText(cells[1]),
+          getEstimateCellText(cells[2]),
+          getEstimateCellText(cells[3])
+        ];
+      });
+    }
+
+    function wrapCanvasText(context, text, x, y, maxWidth, lineHeight) {
+      const words = String(text).split(" ");
+      const lines = [];
+      let line = "";
+      words.forEach((word) => {
+        const testLine = line ? `${line} ${word}` : word;
+        if (context.measureText(testLine).width > maxWidth && line) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = testLine;
+        }
+      });
+      lines.push(line);
+      lines.forEach((lineText, index) => context.fillText(lineText, x, y + (index * lineHeight)));
+      return lines.length;
+    }
+
+    async function saveEstimateScreenshot() {
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+      const headers = ["Статья", "Откуда / начало", "Куда / конец", "Стоимость"];
+      const rows = getEstimateExportRows();
+      const scale = window.devicePixelRatio || 1;
+      const padding = 28;
+      const titleHeight = 92;
+      const rowHeight = 74;
+      const footerHeight = 82;
+      const columnWidths = [260, 360, 360, 250];
+      const width = padding * 2 + columnWidths.reduce((sum, value) => sum + value, 0);
+      const height = padding * 2 + titleHeight + rowHeight * (rows.length + 1) + footerHeight;
+      const canvas = document.createElement("canvas");
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      const context = canvas.getContext("2d");
+      context.scale(scale, scale);
+      context.fillStyle = "#0f1821";
+      context.fillRect(0, 0, width, height);
+      context.fillStyle = "#e7eef7";
+      context.font = "800 28px Arial, sans-serif";
+      context.fillText("Смета поездки", padding, padding + 30);
+      context.font = "600 16px Arial, sans-serif";
+      context.fillStyle = "#9fb0c2";
+      const summary = estimateResortSummaryEl.textContent.replace(/\s+/g, " ").trim();
+      if (summary) wrapCanvasText(context, summary, padding, padding + 60, width - padding * 2, 22);
+
+      let y = padding + titleHeight;
+      let x = padding;
+      context.fillStyle = "#142230";
+      context.fillRect(padding, y, width - padding * 2, rowHeight);
+      context.font = "800 16px Arial, sans-serif";
+      context.fillStyle = "#9fb0c2";
+      headers.forEach((header, index) => {
+        context.fillText(header, x + 14, y + 42);
+        x += columnWidths[index];
+      });
+      y += rowHeight;
+
+      rows.forEach((row, rowIndex) => {
+        x = padding;
+        context.fillStyle = rowIndex % 2 ? "#101b25" : "#0c151e";
+        context.fillRect(padding, y, width - padding * 2, rowHeight);
+        context.strokeStyle = "#26384a";
+        context.beginPath();
+        context.moveTo(padding, y);
+        context.lineTo(width - padding, y);
+        context.stroke();
+        row.forEach((value, index) => {
+          context.font = index === 0 ? "800 15px Arial, sans-serif" : "600 15px Arial, sans-serif";
+          context.fillStyle = index === 3 ? "#5bd08d" : "#e7eef7";
+          wrapCanvasText(context, value, x + 14, y + 28, columnWidths[index] - 28, 20);
+          x += columnWidths[index];
+        });
+        y += rowHeight;
+      });
+
+      context.fillStyle = "#5bd08d";
+      context.font = "900 24px Arial, sans-serif";
+      context.fillText(`Итого: ${estimateTotalEl.textContent}`, padding, y + 42);
+      context.font = "800 17px Arial, sans-serif";
+      context.fillText(estimateConvertedTotalEl.textContent, padding, y + 70);
+
+      const link = document.createElement("a");
+      link.download = `estimate-${new Date().toISOString().slice(0, 10)}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
     }
 
     function openEstimateModal() {
@@ -1566,15 +1784,21 @@
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && estimateModalEl.classList.contains("open")) closeEstimateModal();
     });
-    estimateInputs.forEach((input) => {
-      input.addEventListener("input", () => {
-        saveEstimateInput(input);
-        if (input.classList.contains("estimate-cost") || input.classList.contains("estimate-people")) updateEstimateTotal();
-      });
-      input.addEventListener("change", () => {
-        saveEstimateInput(input);
-        if (input.classList.contains("estimate-cost") || input.classList.contains("estimate-people")) updateEstimateTotal();
-      });
+    estimateModalEl.addEventListener("input", (event) => {
+      if (!(event.target instanceof HTMLInputElement)) return;
+      saveEstimateInput(event.target);
+      if (event.target.closest(".estimate-custom-row")) saveCustomEstimateRows();
+      if (event.target.classList.contains("estimate-cost") || event.target.classList.contains("estimate-people")) updateEstimateTotal();
+    });
+    estimateModalEl.addEventListener("change", (event) => {
+      if (!(event.target instanceof HTMLInputElement)) return;
+      saveEstimateInput(event.target);
+      if (event.target.closest(".estimate-custom-row")) saveCustomEstimateRows();
+      if (event.target.classList.contains("estimate-cost") || event.target.classList.contains("estimate-people")) updateEstimateTotal();
+    });
+    addCustomEstimateRowBtnEl.addEventListener("click", addCustomEstimateRow);
+    saveEstimateScreenshotBtnEl.addEventListener("click", () => {
+      saveEstimateScreenshot().catch((error) => console.error(error));
     });
     [minAltitudeInputEl, maxAltitudeInputEl].forEach((el) => {
       el.addEventListener("input", () => {
@@ -1675,6 +1899,7 @@
       statusEl.textContent = "Ошибка загрузки базы. Запустите страницу через локальный сервер.";
       console.error(error);
     });
+    loadCustomEstimateRows();
     setupEstimateDateInputs();
     loadEstimateInputs();
     loadEstimateExchangeRates();
