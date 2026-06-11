@@ -226,6 +226,118 @@
       color: var(--muted);
       text-align: right;
     }
+    .estimate-button {
+      width: 100%;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px solid var(--route-btn-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: var(--route-btn-bg);
+      color: var(--text);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .estimate-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(0, 0, 0, 0.58);
+    }
+    .estimate-modal.open { display: flex; }
+    .estimate-dialog {
+      width: min(1040px, 100%);
+      max-height: min(760px, 92vh);
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+    }
+    .estimate-header {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+    .estimate-header h2 {
+      margin: 0;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .estimate-close {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--control-bg);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .estimate-body { padding: 16px 18px 18px; }
+    .estimate-table-wrap { overflow-x: auto; }
+    .estimate-table {
+      width: 100%;
+      min-width: 780px;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+    }
+    .estimate-table th,
+    .estimate-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+      vertical-align: top;
+      text-align: left;
+    }
+    .estimate-table th {
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .estimate-cell {
+      display: grid;
+      gap: 6px;
+    }
+    .estimate-cell strong { font-size: 0.88rem; }
+    .estimate-cell span { color: var(--muted); }
+    .estimate-table input {
+      width: 100%;
+      min-width: 150px;
+      background: var(--control-bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 7px 8px;
+      font: inherit;
+      font-size: 0.82rem;
+    }
+    .estimate-total {
+      margin-top: 14px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
     #map { width: 100%; height: 100%; }
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
@@ -316,8 +428,65 @@
         </button>
         <div class="author-note">Автор: Pintea Stanislav</div>
       </section>
+      <button id="openEstimateBtn" class="estimate-button" type="button"><i class="fa-solid fa-calculator"></i> Смета</button>
     </aside>
     <main id="map"></main>
+  </div>
+
+  <div id="estimateModal" class="estimate-modal" aria-hidden="true">
+    <div class="estimate-dialog" role="dialog" aria-modal="true" aria-labelledby="estimateTitle">
+      <div class="estimate-header">
+        <h2 id="estimateTitle"><i class="fa-solid fa-calculator"></i> Смета поездки</h2>
+        <button id="closeEstimateBtn" class="estimate-close" type="button" aria-label="Закрыть"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="estimate-body">
+        <div class="estimate-table-wrap">
+          <table class="estimate-table">
+            <thead>
+              <tr>
+                <th>Статья</th>
+                <th>Откуда / начало</th>
+                <th>Куда / конец</th>
+                <th>Стоимость</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Перелёт</strong></td>
+                <td><div class="estimate-cell"><strong id="estimateFlightFrom">—</strong><input id="estimateFlightFromDate" type="datetime-local" /></div></td>
+                <td><div class="estimate-cell"><strong id="estimateFlightTo">—</strong><input id="estimateFlightToDate" type="datetime-local" /></div></td>
+                <td><input id="estimateFlightCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
+              </tr>
+              <tr>
+                <td><strong>Аренда авто</strong></td>
+                <td><div class="estimate-cell"><span>Получить</span><input id="estimateCarFromDate" type="datetime-local" /></div></td>
+                <td><div class="estimate-cell"><span>Вернуть</span><input id="estimateCarToDate" type="datetime-local" /></div></td>
+                <td><input id="estimateCarCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
+              </tr>
+              <tr>
+                <td><strong>Проживание</strong></td>
+                <td><div class="estimate-cell"><span>Заезд</span><input id="estimateStayFromDate" type="datetime-local" /></div></td>
+                <td><div class="estimate-cell"><span>Выезд</span><input id="estimateStayToDate" type="datetime-local" /></div></td>
+                <td><input id="estimateStayCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
+              </tr>
+              <tr>
+                <td><strong>Аренда экипировки</strong></td>
+                <td><div class="estimate-cell"><span>Начало</span><input id="estimateGearFromDate" type="datetime-local" /></div></td>
+                <td><div class="estimate-cell"><span>Конец</span><input id="estimateGearToDate" type="datetime-local" /></div></td>
+                <td><input id="estimateGearCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
+              </tr>
+              <tr>
+                <td><strong>Скипас</strong></td>
+                <td><div class="estimate-cell"><span>Начало</span><input id="estimateSkiPassFromDate" type="datetime-local" /></div></td>
+                <td><div class="estimate-cell"><span>Конец</span><input id="estimateSkiPassToDate" type="datetime-local" /></div></td>
+                <td><input id="estimateSkiPassCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="estimate-total"><span>Итого:</span><span id="estimateTotal">0</span></div>
+      </div>
+    </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -361,6 +530,14 @@
     const sunIconEl = document.getElementById("sunIcon");
     const moonIconEl = document.getElementById("moonIcon");
     const routeListEl = document.getElementById("routeList");
+    const openEstimateBtnEl = document.getElementById("openEstimateBtn");
+    const estimateModalEl = document.getElementById("estimateModal");
+    const closeEstimateBtnEl = document.getElementById("closeEstimateBtn");
+    const estimateFlightFromEl = document.getElementById("estimateFlightFrom");
+    const estimateFlightToEl = document.getElementById("estimateFlightTo");
+    const estimateTotalEl = document.getElementById("estimateTotal");
+    const estimateInputs = Array.from(document.querySelectorAll("#estimateModal input"));
+    const estimateCostInputs = Array.from(document.querySelectorAll(".estimate-cost"));
     const DEFAULT_FARE_ORIGIN_IATA = "RMO";
     let routePointA = null;
     let routePointB = null;
@@ -503,6 +680,50 @@
       const destinationLabel = airportSearchLabel(destination);
       const query = `рейсы из ${originLabel} в ${destinationLabel}`;
       return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+    }
+
+    function estimateAirportLabel(iata) {
+      if (!iata) return "—";
+      const airport = findAirportByIata(iata);
+      return airport ? `${airport.name} (${airport.iata})` : iata;
+    }
+
+    function updateEstimateFlightRow() {
+      const { origin, arrival } = getFareSettings();
+      estimateFlightFromEl.textContent = origin && arrival ? estimateAirportLabel(origin) : "—";
+      estimateFlightToEl.textContent = origin && arrival ? estimateAirportLabel(arrival) : "—";
+    }
+
+    function updateEstimateTotal() {
+      const total = estimateCostInputs.reduce((sum, input) => {
+        const value = Number(input.value);
+        return sum + (Number.isFinite(value) ? value : 0);
+      }, 0);
+      estimateTotalEl.textContent = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 }).format(total);
+    }
+
+    function saveEstimateInput(input) {
+      localStorage.setItem(`estimate:${input.id}`, input.value);
+    }
+
+    function loadEstimateInputs() {
+      estimateInputs.forEach((input) => {
+        const savedValue = localStorage.getItem(`estimate:${input.id}`);
+        if (savedValue !== null) input.value = savedValue;
+      });
+      updateEstimateTotal();
+    }
+
+    function openEstimateModal() {
+      updateEstimateFlightRow();
+      updateEstimateTotal();
+      estimateModalEl.classList.add("open");
+      estimateModalEl.setAttribute("aria-hidden", "false");
+    }
+
+    function closeEstimateModal() {
+      estimateModalEl.classList.remove("open");
+      estimateModalEl.setAttribute("aria-hidden", "true");
     }
 
     function populateAirportSelect(selectEl, savedValue, fallbackValue, emptyLabel = "") {
@@ -871,6 +1092,7 @@
       state.airports = Array.isArray(airportsRaw) ? airportsRaw.map(normalizeAirport).filter(Boolean) : [];
       populateResortCountries();
       populateFareAirports();
+      updateEstimateFlightRow();
       state.loading = false;
       updateStatus();
       render();
@@ -899,11 +1121,31 @@
     });
     fareOriginAirportEl.addEventListener("change", () => {
       localStorage.setItem("fareOriginAirport", fareOriginAirportEl.value);
+      updateEstimateFlightRow();
       render();
     });
     fareArrivalAirportEl.addEventListener("change", () => {
       localStorage.setItem("fareArrivalAirport", fareArrivalAirportEl.value);
+      updateEstimateFlightRow();
       render();
+    });
+    openEstimateBtnEl.addEventListener("click", openEstimateModal);
+    closeEstimateBtnEl.addEventListener("click", closeEstimateModal);
+    estimateModalEl.addEventListener("click", (event) => {
+      if (event.target === estimateModalEl) closeEstimateModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && estimateModalEl.classList.contains("open")) closeEstimateModal();
+    });
+    estimateInputs.forEach((input) => {
+      input.addEventListener("input", () => {
+        saveEstimateInput(input);
+        if (input.classList.contains("estimate-cost")) updateEstimateTotal();
+      });
+      input.addEventListener("change", () => {
+        saveEstimateInput(input);
+        if (input.classList.contains("estimate-cost")) updateEstimateTotal();
+      });
     });
     [minAltitudeInputEl, maxAltitudeInputEl].forEach((el) => {
       el.addEventListener("input", () => {
@@ -932,6 +1174,7 @@
           if (!iata) return;
           fareArrivalAirportEl.value = iata;
           localStorage.setItem("fareArrivalAirport", iata);
+          updateEstimateFlightRow();
           map.closePopup(event.popup);
           render();
         });
@@ -1001,6 +1244,7 @@
       statusEl.textContent = "Ошибка загрузки базы. Запустите страницу через локальный сервер.";
       console.error(error);
     });
+    loadEstimateInputs();
     loadCountryBorders().catch((error) => console.error(error));
 
     const savedTheme = localStorage.getItem("mapTheme") || "dark";
