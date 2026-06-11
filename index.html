@@ -342,6 +342,20 @@
     }
     .estimate-cell strong { font-size: 0.88rem; }
     .estimate-cell span { color: var(--muted); }
+    .estimate-flight-leg {
+      display: grid;
+      gap: 5px;
+    }
+    .estimate-flight-leg + .estimate-flight-leg {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+    .estimate-flight-leg span {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
     .estimate-cost-cell {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 78px;
@@ -537,8 +551,18 @@
             <tbody>
               <tr>
                 <td><strong>Перелёт</strong></td>
-                <td><div class="estimate-cell"><strong id="estimateFlightFrom">—</strong><input id="estimateFlightFromDate" type="datetime-local" /></div></td>
-                <td><div class="estimate-cell"><strong id="estimateFlightTo">—</strong><input id="estimateFlightToDate" type="datetime-local" /></div></td>
+                <td>
+                  <div class="estimate-cell">
+                    <div class="estimate-flight-leg"><strong id="estimateFlightFrom">—</strong><span>Туда: вылет</span><input id="estimateFlightFromDate" type="datetime-local" /></div>
+                    <div class="estimate-flight-leg"><strong id="estimateFlightReturnFrom">—</strong><span>Обратно: вылет</span><input id="estimateFlightReturnFromDate" type="datetime-local" /></div>
+                  </div>
+                </td>
+                <td>
+                  <div class="estimate-cell">
+                    <div class="estimate-flight-leg"><strong id="estimateFlightTo">—</strong><span>Туда: прилёт</span><input id="estimateFlightToDate" type="datetime-local" /></div>
+                    <div class="estimate-flight-leg"><strong id="estimateFlightReturnTo">—</strong><span>Обратно: прилёт</span><input id="estimateFlightReturnToDate" type="datetime-local" /></div>
+                  </div>
+                </td>
                 <td><input id="estimateFlightCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
               </tr>
               <tr>
@@ -619,6 +643,8 @@
     const closeEstimateBtnEl = document.getElementById("closeEstimateBtn");
     const estimateFlightFromEl = document.getElementById("estimateFlightFrom");
     const estimateFlightToEl = document.getElementById("estimateFlightTo");
+    const estimateFlightReturnFromEl = document.getElementById("estimateFlightReturnFrom");
+    const estimateFlightReturnToEl = document.getElementById("estimateFlightReturnTo");
     const estimateResortSummaryEl = document.getElementById("estimateResortSummary");
     const estimateTotalEl = document.getElementById("estimateTotal");
     const estimateInputs = Array.from(document.querySelectorAll("#estimateModal input"));
@@ -827,8 +853,11 @@
 
     function updateEstimateFlightRow() {
       const { origin, arrival } = getFareSettings();
-      estimateFlightFromEl.textContent = origin && arrival ? estimateAirportLabel(origin) : "—";
-      estimateFlightToEl.textContent = origin && arrival ? estimateAirportLabel(arrival) : "—";
+      const hasRoundTrip = Boolean(origin && arrival);
+      estimateFlightFromEl.textContent = hasRoundTrip ? estimateAirportLabel(origin) : "—";
+      estimateFlightToEl.textContent = hasRoundTrip ? estimateAirportLabel(arrival) : "—";
+      estimateFlightReturnFromEl.textContent = hasRoundTrip ? estimateAirportLabel(arrival) : "—";
+      estimateFlightReturnToEl.textContent = hasRoundTrip ? estimateAirportLabel(origin) : "—";
     }
 
     function updateEstimateTotal() {
