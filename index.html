@@ -282,6 +282,22 @@
       align-items: center;
       gap: 8px;
     }
+    .estimate-title-wrap {
+      display: grid;
+      gap: 8px;
+    }
+    .estimate-resort-summary {
+      display: none;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+    .estimate-resort-summary.visible { display: grid; }
+    .estimate-resort-summary strong {
+      color: var(--text);
+      font-size: 0.9rem;
+    }
     .estimate-close {
       width: 34px;
       height: 34px;
@@ -496,7 +512,10 @@
   <div id="estimateModal" class="estimate-modal" aria-hidden="true">
     <div class="estimate-dialog" role="dialog" aria-modal="true" aria-labelledby="estimateTitle">
       <div class="estimate-header">
-        <h2 id="estimateTitle"><i class="fa-solid fa-calculator"></i> Смета поездки</h2>
+        <div class="estimate-title-wrap">
+          <h2 id="estimateTitle"><i class="fa-solid fa-calculator"></i> Смета поездки</h2>
+          <div id="estimateResortSummary" class="estimate-resort-summary"></div>
+        </div>
         <button id="closeEstimateBtn" class="estimate-close" type="button" aria-label="Закрыть"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="estimate-body">
@@ -595,6 +614,7 @@
     const closeEstimateBtnEl = document.getElementById("closeEstimateBtn");
     const estimateFlightFromEl = document.getElementById("estimateFlightFrom");
     const estimateFlightToEl = document.getElementById("estimateFlightTo");
+    const estimateResortSummaryEl = document.getElementById("estimateResortSummary");
     const estimateTotalEl = document.getElementById("estimateTotal");
     const estimateInputs = Array.from(document.querySelectorAll("#estimateModal input"));
     const estimateCostInputs = Array.from(document.querySelectorAll(".estimate-cost"));
@@ -708,6 +728,7 @@
       if (which === "A") routePointA = point;
       if (which === "B") routePointB = point;
       drawRoutePoints();
+      updateEstimateResortSummary();
       routeStatusEl.textContent = `Точка ${which} установлена`;
     }
 
@@ -724,6 +745,52 @@
     function buildBookingUrl(resort) {
       const query = `${resort.name} ${resort.country}`.trim();
       return `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(query)}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      })[char]);
+    }
+
+    function formatResortSummaryValue(label, value, suffix = "") {
+      if (value === null || value === undefined || value === "") return null;
+      return `${label}: ${value}${suffix}`;
+    }
+
+    function buildResortSummaryDetails(resort) {
+      return [
+        formatResortSummaryValue("Верхняя высота", resort.altitude_top, " м"),
+        formatResortSummaryValue("Нижняя высота", resort.altitude_base, " м"),
+        formatResortSummaryValue("Перепад", resort.vertical_drop, " м"),
+        formatResortSummaryValue("Трассы", resort.slopes_km, " км"),
+        formatResortSummaryValue("Подъёмники", resort.lifts),
+        resort.snowpark ? "Сноупарк" : null,
+        resort.night_skiing ? "Ночное катание" : null,
+        resort.glacier ? "Ледник" : null
+      ].filter(Boolean).join(" · ");
+    }
+
+    function getSelectedRouteResort() {
+      if (routePointA && routePointA.type === "resort") return routePointA.resort;
+      if (routePointB && routePointB.type === "resort") return routePointB.resort;
+      return null;
+    }
+
+    function updateEstimateResortSummary() {
+      const resort = getSelectedRouteResort();
+      if (!resort) {
+        estimateResortSummaryEl.classList.remove("visible");
+        estimateResortSummaryEl.innerHTML = "";
+        return;
+      }
+      const details = buildResortSummaryDetails(resort);
+      estimateResortSummaryEl.innerHTML = `<strong>${escapeHtml(resort.country)} · ${escapeHtml(resort.name)}</strong>${details ? `<span>${escapeHtml(details)}</span>` : ""}`;
+      estimateResortSummaryEl.classList.add("visible");
     }
 
     function getFareSettings() {
@@ -841,6 +908,7 @@
 
     function openEstimateModal() {
       updateEstimateFlightRow();
+      updateEstimateResortSummary();
       updateEstimateTotal();
       estimateModalEl.classList.add("open");
       estimateModalEl.setAttribute("aria-hidden", "false");
@@ -999,7 +1067,24 @@
             const tagsText = tags ? `<br> <i class="fa-solid fa-tag"></i> Особенности: ${tags}` : "";
             const site = r.website ? `<br><a href="${r.website}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe"></i> Сайт</a>` : "";
             const booking = `<br><a href="${buildBookingUrl(r)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:6px;padding:6px 10px;border:1px solid var(--booking-border);border-radius:6px;text-decoration:none;color:var(--booking-text);background:var(--booking-bg);"><i class="fa-solid fa-hotel"></i> Открыть на Booking.com</a>`;
-            const routeButtons = buildRoutePointButtons({ lat: r.lat, lng: r.lng, label: `${r.name}, ${r.country}` });
+            const routeButtons = buildRoutePointButtons({
+              lat: r.lat,
+              lng: r.lng,
+              label: `${r.name}, ${r.country}`,
+              type: "resort",
+              resort: {
+                name: r.name,
+                country: r.country,
+                altitude_top: r.altitude_top,
+                altitude_base: r.altitude_base,
+                vertical_drop: r.vertical_drop,
+                slopes_km: r.slopes_km,
+                lifts: r.lifts,
+                snowpark: r.snowpark,
+                night_skiing: r.night_skiing,
+                glacier: r.glacier
+              }
+            });
             L.marker([r.lat, r.lng], { icon: getResortIcon() }).bindPopup(`<b>${r.name}</b><br>${r.country}${region}<br> <i class="fa-solid fa-arrow-up"></i> Верхняя высота: ${top}<br><i class="fa-solid fa-arrow-down"></i> Нижняя высота: ${base}${vertical}${slopes}${lifts}${tagsText}${site}${booking}${routeButtons}`).addTo(resortLayer);
           });
       }
@@ -1112,6 +1197,7 @@
         routePointA = from;
         routePointB = to;
         drawRoutePoints();
+        updateEstimateResortSummary();
         routeStatusEl.textContent = `Найдено маршрутов: ${builtRoutes.length}`;
       } catch (e) {
         routeStatusEl.textContent = `Не удалось построить маршрут: ${e.message}`;
@@ -1128,6 +1214,7 @@
       builtRoutes = [];
       activeRouteIndex = 0;
       routeListEl.innerHTML = "";
+      updateEstimateResortSummary();
       routeStatusEl.textContent = "Маршрут не построен";
     }
 
