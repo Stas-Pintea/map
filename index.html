@@ -879,6 +879,13 @@
       return null;
     }
 
+    function estimateSummaryAirportLabel() {
+      const { arrival } = getFareSettings();
+      if (!arrival) return "аэропорт не выбран";
+      const airport = findAirportByIata(arrival);
+      return airport ? `${airport.name} (${airport.iata})` : arrival;
+    }
+
     function updateEstimateResortSummary() {
       const resort = getSelectedRouteResort();
       if (!resort) {
@@ -887,7 +894,7 @@
         return;
       }
       const details = buildResortSummaryDetails(resort);
-      estimateResortSummaryEl.innerHTML = `<strong>${escapeHtml(resort.country)} · ${escapeHtml(resort.name)}</strong>${details ? `<div class="estimate-resort-details">${details}</div>` : ""}`;
+      estimateResortSummaryEl.innerHTML = `<strong>${escapeHtml(resort.country)} · ${escapeHtml(estimateSummaryAirportLabel())} · ${escapeHtml(resort.name)}</strong>${details ? `<div class="estimate-resort-details">${details}</div>` : ""}`;
       estimateResortSummaryEl.classList.add("visible");
     }
 
@@ -1472,6 +1479,7 @@
     fareArrivalAirportEl.addEventListener("change", () => {
       localStorage.setItem("fareArrivalAirport", fareArrivalAirportEl.value);
       updateEstimateFlightRow();
+      updateEstimateResortSummary();
       render();
     });
     openEstimateBtnEl.addEventListener("click", openEstimateModal);
@@ -1520,6 +1528,7 @@
           fareArrivalAirportEl.value = iata;
           localStorage.setItem("fareArrivalAirport", iata);
           updateEstimateFlightRow();
+          updateEstimateResortSummary();
           map.closePopup(event.popup);
           render();
         });
