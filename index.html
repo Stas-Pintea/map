@@ -254,8 +254,8 @@
     }
     .estimate-modal.open { display: flex; }
     .estimate-dialog {
-      width: min(1040px, 100%);
-      max-height: min(760px, 92vh);
+      width: min(1180px, 100%);
+      max-height: min(860px, 96vh);
       overflow: auto;
       border: 1px solid var(--line);
       border-radius: 14px;
@@ -297,6 +297,21 @@
     .estimate-resort-summary strong {
       color: var(--text);
       font-size: 0.9rem;
+    }
+    .estimate-resort-details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+    }
+    .estimate-resort-details span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .estimate-resort-details i {
+      width: 14px;
+      color: var(--accent);
+      text-align: center;
     }
     .estimate-close {
       width: 34px;
@@ -400,6 +415,21 @@
     }
     .estimate-people {
       min-width: 0;
+    }
+    .estimate-people-wrap {
+      position: relative;
+    }
+    .estimate-people-wrap i {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent);
+      font-size: 0.78rem;
+      pointer-events: none;
+    }
+    .estimate-people-wrap .estimate-people {
+      padding-left: 28px;
     }
     .estimate-date-picker {
       position: relative;
@@ -601,13 +631,13 @@
                 <td><strong class="estimate-label"><i class="fa-solid fa-car"></i>Аренда авто</strong></td>
                 <td><div class="estimate-cell"><span><i class="fa-solid fa-key"></i>Получить</span><input id="estimateCarFromDate" type="datetime-local" /></div></td>
                 <td><div class="estimate-cell"><span><i class="fa-solid fa-rotate-left"></i>Вернуть</span><input id="estimateCarToDate" type="datetime-local" /></div></td>
-                <td><div class="estimate-cost-cell"><input id="estimateCarCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><input id="estimateCarPeople" class="estimate-people" type="number" min="1" step="1" value="1" placeholder="Людей" aria-label="Людей" title="Людей" /></div></td>
+                <td><div class="estimate-cost-cell"><input id="estimateCarCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><span class="estimate-people-wrap"><i class="fa-solid fa-user"></i><input id="estimateCarPeople" class="estimate-people" type="number" min="1" step="1" value="1" placeholder="Людей" aria-label="Людей" title="Людей" /></span></div></td>
               </tr>
               <tr>
                 <td><strong class="estimate-label"><i class="fa-solid fa-bed"></i>Проживание</strong></td>
                 <td><div class="estimate-cell"><span><i class="fa-solid fa-door-open"></i>Заезд</span><input id="estimateStayFromDate" type="datetime-local" /></div></td>
                 <td><div class="estimate-cell"><span><i class="fa-solid fa-door-closed"></i>Выезд</span><input id="estimateStayToDate" type="datetime-local" /></div></td>
-                <td><div class="estimate-cost-cell"><input id="estimateStayCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><input id="estimateStayPeople" class="estimate-people" type="number" min="1" step="1" value="1" placeholder="Людей" aria-label="Людей" title="Людей" /></div></td>
+                <td><div class="estimate-cost-cell"><input id="estimateStayCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><span class="estimate-people-wrap"><i class="fa-solid fa-user"></i><input id="estimateStayPeople" class="estimate-people" type="number" min="1" step="1" value="1" placeholder="Людей" aria-label="Людей" title="Людей" /></span></div></td>
               </tr>
               <tr>
                 <td><strong class="estimate-label"><i class="fa-solid fa-person-skiing"></i>Аренда экипировки</strong></td>
@@ -825,22 +855,22 @@
       })[char]);
     }
 
-    function formatResortSummaryValue(label, value, suffix = "") {
+    function formatResortSummaryValue(icon, label, value, suffix = "") {
       if (value === null || value === undefined || value === "") return null;
-      return `${label}: ${value}${suffix}`;
+      return `<span><i class="fa-solid ${icon}"></i>${escapeHtml(label)}: ${escapeHtml(value)}${escapeHtml(suffix)}</span>`;
     }
 
     function buildResortSummaryDetails(resort) {
       return [
-        formatResortSummaryValue("Верхняя высота", resort.altitude_top, " м"),
-        formatResortSummaryValue("Нижняя высота", resort.altitude_base, " м"),
-        formatResortSummaryValue("Перепад", resort.vertical_drop, " м"),
-        formatResortSummaryValue("Трассы", resort.slopes_km, " км"),
-        formatResortSummaryValue("Подъёмники", resort.lifts),
-        resort.snowpark ? "Сноупарк" : null,
-        resort.night_skiing ? "Ночное катание" : null,
-        resort.glacier ? "Ледник" : null
-      ].filter(Boolean).join(" · ");
+        formatResortSummaryValue("fa-arrow-up", "Верхняя высота", resort.altitude_top, " м"),
+        formatResortSummaryValue("fa-arrow-down", "Нижняя высота", resort.altitude_base, " м"),
+        formatResortSummaryValue("fa-up-down", "Перепад", resort.vertical_drop, " м"),
+        formatResortSummaryValue("fa-road", "Трассы", resort.slopes_km, " км"),
+        formatResortSummaryValue("fa-cable-car", "Подъёмники", resort.lifts),
+        resort.snowpark ? '<span><i class="fa-solid fa-person-skiing"></i>Сноупарк</span>' : null,
+        resort.night_skiing ? '<span><i class="fa-solid fa-moon"></i>Ночное катание</span>' : null,
+        resort.glacier ? '<span><i class="fa-solid fa-igloo"></i>Ледник</span>' : null
+      ].filter(Boolean).join("");
     }
 
     function getSelectedRouteResort() {
@@ -857,7 +887,7 @@
         return;
       }
       const details = buildResortSummaryDetails(resort);
-      estimateResortSummaryEl.innerHTML = `<strong>${escapeHtml(resort.country)} · ${escapeHtml(resort.name)}</strong>${details ? `<span>${escapeHtml(details)}</span>` : ""}`;
+      estimateResortSummaryEl.innerHTML = `<strong>${escapeHtml(resort.country)} · ${escapeHtml(resort.name)}</strong>${details ? `<div class="estimate-resort-details">${details}</div>` : ""}`;
       estimateResortSummaryEl.classList.add("visible");
     }
 
