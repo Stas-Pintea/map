@@ -336,16 +336,9 @@
     .estimate-cell span { color: var(--muted); }
     .estimate-cost-cell {
       display: grid;
-      gap: 6px;
-    }
-    .estimate-people-field {
-      display: grid;
-      grid-template-columns: auto minmax(70px, 1fr);
-      align-items: center;
+      grid-template-columns: minmax(130px, 1fr) minmax(96px, 0.55fr);
+      align-items: start;
       gap: 8px;
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 700;
     }
     .estimate-table input {
       width: 100%;
@@ -358,8 +351,8 @@
       font: inherit;
       font-size: 0.82rem;
     }
-    .estimate-people-field input {
-      min-width: 70px;
+    .estimate-people {
+      min-width: 0;
     }
     .estimate-date-picker {
       position: relative;
@@ -540,13 +533,13 @@
                 <td><strong>Аренда авто</strong></td>
                 <td><div class="estimate-cell"><span>Получить</span><input id="estimateCarFromDate" type="datetime-local" /></div></td>
                 <td><div class="estimate-cell"><span>Вернуть</span><input id="estimateCarToDate" type="datetime-local" /></div></td>
-                <td><div class="estimate-cost-cell"><input id="estimateCarCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><label class="estimate-people-field"><span>Людей</span><input id="estimateCarPeople" class="estimate-people" type="number" min="1" step="1" value="1" /></label></div></td>
+                <td><div class="estimate-cost-cell"><input id="estimateCarCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><input id="estimateCarPeople" class="estimate-people" type="number" min="1" step="1" value="1" placeholder="Людей" aria-label="Людей" title="Людей" /></div></td>
               </tr>
               <tr>
                 <td><strong>Проживание</strong></td>
                 <td><div class="estimate-cell"><span>Заезд</span><input id="estimateStayFromDate" type="datetime-local" /></div></td>
                 <td><div class="estimate-cell"><span>Выезд</span><input id="estimateStayToDate" type="datetime-local" /></div></td>
-                <td><div class="estimate-cost-cell"><input id="estimateStayCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><label class="estimate-people-field"><span>Людей</span><input id="estimateStayPeople" class="estimate-people" type="number" min="1" step="1" value="1" /></label></div></td>
+                <td><div class="estimate-cost-cell"><input id="estimateStayCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><input id="estimateStayPeople" class="estimate-people" type="number" min="1" step="1" value="1" placeholder="Людей" aria-label="Людей" title="Людей" /></div></td>
               </tr>
               <tr>
                 <td><strong>Аренда экипировки</strong></td>
