@@ -718,7 +718,10 @@
         </div>
         <div class="estimate-tools">
           <button id="addCustomEstimateRowBtn" class="estimate-tool-btn" type="button"><i class="fa-solid fa-plus"></i>Добавить строку</button>
+          <button id="exportEstimateJsonBtn" class="estimate-tool-btn" type="button"><i class="fa-solid fa-file-export"></i>Экспорт JSON</button>
+          <button id="importEstimateJsonBtn" class="estimate-tool-btn" type="button"><i class="fa-solid fa-file-import"></i>Импорт JSON</button>
           <button id="saveEstimateScreenshotBtn" class="estimate-tool-btn" type="button"><i class="fa-solid fa-camera"></i>Сохранить скриншот таблицы</button>
+          <input id="estimateJsonFileInput" type="file" accept="application/json,.json" hidden />
         </div>
         <div class="estimate-total">
           <div class="estimate-total-main"><span>Итого:</span><span id="estimateTotal">€0</span></div>
@@ -786,7 +789,10 @@
     const estimateBookingLinkEl = document.getElementById("estimateBookingLink");
     const estimateSkiPassLinkEl = document.getElementById("estimateSkiPassLink");
     const addCustomEstimateRowBtnEl = document.getElementById("addCustomEstimateRowBtn");
+    const exportEstimateJsonBtnEl = document.getElementById("exportEstimateJsonBtn");
+    const importEstimateJsonBtnEl = document.getElementById("importEstimateJsonBtn");
     const saveEstimateScreenshotBtnEl = document.getElementById("saveEstimateScreenshotBtn");
+    const estimateJsonFileInputEl = document.getElementById("estimateJsonFileInput");
     let estimateInputs = Array.from(document.querySelectorAll("#estimateModal input"));
     let estimateCostInputs = Array.from(document.querySelectorAll(".estimate-cost"));
     let estimateDateInputs = Array.from(document.querySelectorAll('#estimateModal input[type="datetime-local"]'));
@@ -1098,7 +1104,7 @@
     }
 
     function saveEstimateInput(input) {
-      if (!input.id) return;
+      if (!input.id || input.type === "file") return;
       localStorage.setItem(`estimate:${input.id}`, input.value);
     }
 
@@ -1150,6 +1156,94 @@
       createCustomEstimateRow();
       saveCustomEstimateRows();
       updateEstimateTotal();
+    }
+
+    function getEstimateJsonPayload() {
+      refreshEstimateInputCollections();
+      saveCustomEstimateRows();
+      const fields = {};
+      estimateInputs
+        .filter((input) => input.id && input.type !== "file" && !input.closest(".estimate-custom-row"))
+        .forEach((input) => {
+          fields[input.id] = input.value;
+        });
+      return {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        fareSettings: getFareSettings(),
+        fields,
+        customRows: getCustomEstimateRows()
+      };
+    }
+
+    function downloadJsonFile(fileName, data) {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.download = fileName;
+      link.href = URL.createObjectURL(blob);
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function exportEstimateJson() {
+      downloadJsonFile(`estimate-${new Date().toISOString().slice(0, 10)}.json`, getEstimateJsonPayload());
+    }
+
+    function clearCustomEstimateRows() {
+      document.querySelectorAll(".estimate-custom-row").forEach((row) => row.remove());
+      refreshEstimateInputCollections();
+    }
+
+    function applyEstimateJsonPayload(payload) {
+      if (!payload || typeof payload !== "object") throw new Error("Некорректный JSON сметы");
+      const fields = payload.fields && typeof payload.fields === "object" ? payload.fields : payload;
+      Object.entries(fields).forEach(([id, value]) => {
+        const input = document.getElementById(id);
+        if (!(input instanceof HTMLInputElement)) return;
+        if (input.closest(".estimate-custom-row")) return;
+        input.value = value == null ? "" : String(value);
+        saveEstimateInput(input);
+      });
+      if (payload.fareSettings && typeof payload.fareSettings === "object") {
+        const { origin, arrival } = payload.fareSettings;
+        if (origin && Array.from(fareOriginAirportEl.options).some((option) => option.value === origin)) {
+          fareOriginAirportEl.value = origin;
+          localStorage.setItem("fareOriginAirport", origin);
+        }
+        if (arrival !== undefined && Array.from(fareArrivalAirportEl.options).some((option) => option.value === arrival)) {
+          fareArrivalAirportEl.value = arrival;
+          localStorage.setItem("fareArrivalAirport", arrival);
+        }
+      }
+      clearCustomEstimateRows();
+      const customRows = Array.isArray(payload.customRows) ? payload.customRows : [];
+      customRows.forEach(createCustomEstimateRow);
+      saveCustomEstimateRows();
+      setupEstimateDateInputs();
+      estimateDateInputs.forEach(updateEstimateDateDisplay);
+      updateEstimateFlightRow();
+      updateEstimateResortSummary();
+      updateEstimateActionLinks();
+      updateEstimateTotal();
+    }
+
+    function importEstimateJson(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          applyEstimateJsonPayload(JSON.parse(reader.result));
+        } catch (error) {
+          alert(`Не удалось импортировать JSON: ${error.message}`);
+        } finally {
+          estimateJsonFileInputEl.value = "";
+        }
+      };
+      reader.onerror = () => {
+        alert("Не удалось прочитать JSON-файл");
+        estimateJsonFileInputEl.value = "";
+      };
+      reader.readAsText(file);
     }
 
     function formatEstimateDate(value) {
@@ -1753,6 +1847,9 @@
       if (event.target.classList.contains("estimate-cost") || event.target.classList.contains("estimate-people")) updateEstimateTotal();
     });
     addCustomEstimateRowBtnEl.addEventListener("click", addCustomEstimateRow);
+    exportEstimateJsonBtnEl.addEventListener("click", exportEstimateJson);
+    importEstimateJsonBtnEl.addEventListener("click", () => estimateJsonFileInputEl.click());
+    estimateJsonFileInputEl.addEventListener("change", () => importEstimateJson(estimateJsonFileInputEl.files[0]));
     saveEstimateScreenshotBtnEl.addEventListener("click", () => {
       saveEstimateScreenshot().catch((error) => console.error(error));
     });
