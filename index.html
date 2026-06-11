@@ -283,7 +283,11 @@
             <span>Аэропорт вылета для цен</span>
             <select id="fareOriginAirport"></select>
           </label>
-          <div class="route-note">По умолчанию: Chişinău International Airport, Moldova (RMO).</div>
+          <label>
+            <span>Аэропорт прилёта</span>
+            <select id="fareArrivalAirport"></select>
+          </label>
+          <div class="route-note">По умолчанию: вылет Chişinău International Airport (RMO), прилёт Prague (PRG).</div>
         </div>
       </section>
 
@@ -331,6 +335,7 @@
     const showResortsEl = document.getElementById("showResorts");
     const showAirportsEl = document.getElementById("showAirports");
     const fareOriginAirportEl = document.getElementById("fareOriginAirport");
+    const fareArrivalAirportEl = document.getElementById("fareArrivalAirport");
     const resortCountryFilterEl = document.getElementById("resortCountryFilter");
     const minAltitudeEl = document.getElementById("minAltitude");
     const maxAltitudeEl = document.getElementById("maxAltitude");
@@ -356,6 +361,7 @@
     const moonIconEl = document.getElementById("moonIcon");
     const routeListEl = document.getElementById("routeList");
     const DEFAULT_FARE_ORIGIN_IATA = "RMO";
+    const DEFAULT_FARE_ARRIVAL_IATA = "PRG";
     let routePointA = null;
     let routePointB = null;
     let builtRoutes = [];
@@ -480,7 +486,8 @@
 
     function getFareSettings() {
       return {
-        origin: fareOriginAirportEl.value || DEFAULT_FARE_ORIGIN_IATA
+        origin: fareOriginAirportEl.value || DEFAULT_FARE_ORIGIN_IATA,
+        arrival: fareArrivalAirportEl.value || DEFAULT_FARE_ARRIVAL_IATA
       };
     }
 
@@ -498,18 +505,23 @@
       return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
     }
 
-    function populateFareOriginAirports() {
-      fareOriginAirportEl.innerHTML = "";
-      const savedOrigin = localStorage.getItem("fareOriginAirport") || DEFAULT_FARE_ORIGIN_IATA;
+    function populateAirportSelect(selectEl, savedValue, fallbackValue) {
+      selectEl.innerHTML = "";
       state.airports.forEach((airport) => {
         if (!airport.iata) return;
         const option = document.createElement("option");
         option.value = airport.iata;
         option.textContent = `${airport.iata} — ${airport.name}, ${airport.country}`;
-        fareOriginAirportEl.appendChild(option);
+        selectEl.appendChild(option);
       });
-      const hasSavedOrigin = Array.from(fareOriginAirportEl.options).some((option) => option.value === savedOrigin);
-      fareOriginAirportEl.value = hasSavedOrigin ? savedOrigin : DEFAULT_FARE_ORIGIN_IATA;
+      const hasSavedValue = Array.from(selectEl.options).some((option) => option.value === savedValue);
+      const hasFallbackValue = Array.from(selectEl.options).some((option) => option.value === fallbackValue);
+      selectEl.value = hasSavedValue ? savedValue : (hasFallbackValue ? fallbackValue : "");
+    }
+
+    function populateFareAirports() {
+      populateAirportSelect(fareOriginAirportEl, localStorage.getItem("fareOriginAirport") || DEFAULT_FARE_ORIGIN_IATA, DEFAULT_FARE_ORIGIN_IATA);
+      populateAirportSelect(fareArrivalAirportEl, localStorage.getItem("fareArrivalAirport") || DEFAULT_FARE_ARRIVAL_IATA, DEFAULT_FARE_ARRIVAL_IATA);
     }
 
     function populateResortCountries() {
@@ -568,11 +580,16 @@
         state.airports.forEach((a) => {
           const iata = a.iata ? ` (${a.iata})` : "";
           const routeButtons = buildRoutePointButtons({ lat: a.lat, lng: a.lng, label: `${a.name}${iata}, ${a.country}` });
-          const fareOrigin = getFareSettings().origin;
-          const fareBlock = a.iata
-            ? `<br><div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);"><b><i class="fa-solid fa-ticket"></i> Рейсы из ${fareOrigin}</b><br><a href="${buildFlightSearchUrl(fareOrigin, a.iata)}" target="_blank" rel="noopener noreferrer">Открыть варианты рейсов в Google</a></div>`
+          const fareSettings = getFareSettings();
+          const fareOrigin = fareSettings.origin;
+          const fareArrival = fareSettings.arrival || a.iata;
+          const arrivalButton = a.iata
+            ? `<button class="popup-action secondary js-set-fare-arrival" data-iata="${a.iata}" type="button"><i class="fa-solid fa-plane-arrival"></i><span>Сделать аэропортом прилёта</span></button>`
             : "";
-          L.marker([a.lat, a.lng], { icon: getAirportIcon() }).bindPopup(`<b>${a.name}${iata}</b><br>${a.country}${fareBlock}${routeButtons}`).addTo(airportLayer);
+          const fareBlock = a.iata
+            ? `<br><div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);"><b><i class="fa-solid fa-ticket"></i> Рейсы ${fareOrigin} → ${fareArrival}</b><br><a href="${buildFlightSearchUrl(fareOrigin, fareArrival)}" target="_blank" rel="noopener noreferrer">Открыть варианты рейсов в Google</a></div>`
+            : "";
+          L.marker([a.lat, a.lng], { icon: getAirportIcon() }).bindPopup(`<b>${a.name}${iata}</b><br>${a.country}${fareBlock}<div class="popup-actions">${arrivalButton}</div>${routeButtons}`).addTo(airportLayer);
         });
       }
     }
@@ -771,7 +788,7 @@
       state.resorts = resorts;
       state.airports = Array.isArray(airportsRaw) ? airportsRaw.map(normalizeAirport).filter(Boolean) : [];
       populateResortCountries();
-      populateFareOriginAirports();
+      populateFareAirports();
       state.loading = false;
       updateStatus();
       render();
@@ -802,6 +819,10 @@
       localStorage.setItem("fareOriginAirport", fareOriginAirportEl.value);
       render();
     });
+    fareArrivalAirportEl.addEventListener("change", () => {
+      localStorage.setItem("fareArrivalAirport", fareArrivalAirportEl.value);
+      render();
+    });
     [minAltitudeInputEl, maxAltitudeInputEl].forEach((el) => {
       el.addEventListener("input", () => {
         clampAltitudeInputs();
@@ -822,6 +843,17 @@
     map.on("popupopen", (event) => {
       const el = event.popup && event.popup.getElement();
       if (!el) return;
+      const arrivalButtons = el.querySelectorAll(".js-set-fare-arrival");
+      arrivalButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const iata = btn.getAttribute("data-iata");
+          if (!iata) return;
+          fareArrivalAirportEl.value = iata;
+          localStorage.setItem("fareArrivalAirport", iata);
+          map.closePopup(event.popup);
+          render();
+        });
+      });
       const buttons = el.querySelectorAll(".js-set-route-point");
       buttons.forEach((btn) => {
         btn.addEventListener("click", () => {
