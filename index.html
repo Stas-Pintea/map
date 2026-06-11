@@ -318,6 +318,19 @@
     }
     .estimate-cell strong { font-size: 0.88rem; }
     .estimate-cell span { color: var(--muted); }
+    .estimate-cost-cell {
+      display: grid;
+      gap: 6px;
+    }
+    .estimate-people-field {
+      display: grid;
+      grid-template-columns: auto minmax(70px, 1fr);
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
     .estimate-table input {
       width: 100%;
       min-width: 150px;
@@ -328,6 +341,9 @@
       padding: 7px 8px;
       font: inherit;
       font-size: 0.82rem;
+    }
+    .estimate-people-field input {
+      min-width: 70px;
     }
     .estimate-date-picker {
       position: relative;
@@ -505,13 +521,13 @@
                 <td><strong>Аренда авто</strong></td>
                 <td><div class="estimate-cell"><span>Получить</span><input id="estimateCarFromDate" type="datetime-local" /></div></td>
                 <td><div class="estimate-cell"><span>Вернуть</span><input id="estimateCarToDate" type="datetime-local" /></div></td>
-                <td><input id="estimateCarCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
+                <td><div class="estimate-cost-cell"><input id="estimateCarCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><label class="estimate-people-field"><span>Людей</span><input id="estimateCarPeople" class="estimate-people" type="number" min="1" step="1" value="1" /></label></div></td>
               </tr>
               <tr>
                 <td><strong>Проживание</strong></td>
                 <td><div class="estimate-cell"><span>Заезд</span><input id="estimateStayFromDate" type="datetime-local" /></div></td>
                 <td><div class="estimate-cell"><span>Выезд</span><input id="estimateStayToDate" type="datetime-local" /></div></td>
-                <td><input id="estimateStayCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /></td>
+                <td><div class="estimate-cost-cell"><input id="estimateStayCost" class="estimate-cost" type="number" min="0" step="1" placeholder="0" /><label class="estimate-people-field"><span>Людей</span><input id="estimateStayPeople" class="estimate-people" type="number" min="1" step="1" value="1" /></label></div></td>
               </tr>
               <tr>
                 <td><strong>Аренда экипировки</strong></td>
@@ -583,6 +599,10 @@
     const estimateInputs = Array.from(document.querySelectorAll("#estimateModal input"));
     const estimateCostInputs = Array.from(document.querySelectorAll(".estimate-cost"));
     const estimateDateInputs = Array.from(document.querySelectorAll('#estimateModal input[type="datetime-local"]'));
+    const estimateCarCostEl = document.getElementById("estimateCarCost");
+    const estimateCarPeopleEl = document.getElementById("estimateCarPeople");
+    const estimateStayCostEl = document.getElementById("estimateStayCost");
+    const estimateStayPeopleEl = document.getElementById("estimateStayPeople");
     const DEFAULT_FARE_ORIGIN_IATA = "RMO";
     let routePointA = null;
     let routePointB = null;
@@ -740,11 +760,16 @@
     }
 
     function updateEstimateTotal() {
+      const sharedInputs = new Set([estimateCarCostEl, estimateStayCostEl]);
       const total = estimateCostInputs.reduce((sum, input) => {
         const value = Number(input.value);
-        return sum + (Number.isFinite(value) ? value : 0);
+        if (!Number.isFinite(value)) return sum;
+        if (!sharedInputs.has(input)) return sum + value;
+        const peopleInput = input === estimateCarCostEl ? estimateCarPeopleEl : estimateStayPeopleEl;
+        const people = Math.max(1, Math.floor(Number(peopleInput.value) || 1));
+        return sum + (value / people);
       }, 0);
-      estimateTotalEl.textContent = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 }).format(total);
+      estimateTotalEl.textContent = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 }).format(total);
     }
 
     function saveEstimateInput(input) {
@@ -806,6 +831,9 @@
       estimateInputs.forEach((input) => {
         const savedValue = localStorage.getItem(`estimate:${input.id}`);
         if (savedValue !== null) input.value = savedValue;
+      });
+      [estimateCarPeopleEl, estimateStayPeopleEl].forEach((input) => {
+        if (!Number(input.value) || Number(input.value) < 1) input.value = "1";
       });
       estimateDateInputs.forEach(updateEstimateDateDisplay);
       updateEstimateTotal();
@@ -1237,11 +1265,11 @@
     estimateInputs.forEach((input) => {
       input.addEventListener("input", () => {
         saveEstimateInput(input);
-        if (input.classList.contains("estimate-cost")) updateEstimateTotal();
+        if (input.classList.contains("estimate-cost") || input.classList.contains("estimate-people")) updateEstimateTotal();
       });
       input.addEventListener("change", () => {
         saveEstimateInput(input);
-        if (input.classList.contains("estimate-cost")) updateEstimateTotal();
+        if (input.classList.contains("estimate-cost") || input.classList.contains("estimate-people")) updateEstimateTotal();
       });
     });
     [minAltitudeInputEl, maxAltitudeInputEl].forEach((el) => {
