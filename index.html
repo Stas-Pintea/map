@@ -249,13 +249,13 @@
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 22px;
+      padding: 6px;
       background: rgba(0, 0, 0, 0.58);
     }
     .estimate-modal.open { display: flex; }
     .estimate-dialog {
-      width: min(1180px, 100%);
-      max-height: min(860px, 96vh);
+      width: min(1380px, 100%);
+      max-height: calc(100vh - 12px);
       overflow: auto;
       border: 1px solid var(--line);
       border-radius: 14px;
@@ -729,6 +729,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
     const state = { resorts: [], airports: [], loading: true };
 
@@ -1215,118 +1216,73 @@
       updateEstimateTotal();
     }
 
-    function getEstimateCellText(cell) {
-      const customNameInput = cell.querySelector(".estimate-custom-name");
-      if (customNameInput) return customNameInput.value.trim() || "Своя строка";
-      const textParts = [];
-      cell.querySelectorAll("strong, span.date-display, .estimate-cell span, .estimate-custom-name").forEach((node) => {
-        const value = node.matches("input") ? node.value : node.textContent;
-        const cleanValue = String(value || "").replace(/\s+/g, " ").trim();
-        if (cleanValue && cleanValue !== "Выбрать") textParts.push(cleanValue);
+    function syncCloneInputValues(sourceEl, cloneEl) {
+      const sourceInputs = Array.from(sourceEl.querySelectorAll("input"));
+      const cloneInputs = Array.from(cloneEl.querySelectorAll("input"));
+      sourceInputs.forEach((input, index) => {
+        if (!cloneInputs[index]) return;
+        cloneInputs[index].setAttribute("value", input.value);
+        cloneInputs[index].value = input.value;
       });
-      const directInput = cell.querySelector(":scope > input.estimate-cost, .estimate-cost-cell > input.estimate-cost");
-      if (directInput) {
-        const cost = Number(directInput.value) || 0;
-        textParts.push(formatEstimateCurrency(cost, "EUR"));
+    }
+
+    async function renderEstimateDialogToCanvas() {
+      const sourceEl = estimateModalEl.querySelector(".estimate-dialog");
+      if (window.html2canvas) {
+        return window.html2canvas(sourceEl, {
+          backgroundColor: null,
+          scale: window.devicePixelRatio || 2,
+          useCORS: true,
+          width: sourceEl.scrollWidth,
+          height: sourceEl.scrollHeight,
+          windowWidth: sourceEl.scrollWidth,
+          windowHeight: sourceEl.scrollHeight,
+          scrollX: 0,
+          scrollY: 0,
+          onclone: (documentClone) => {
+            const sourceClone = documentClone.querySelector(".estimate-dialog");
+            if (sourceClone) {
+              syncCloneInputValues(sourceEl, sourceClone);
+              sourceClone.style.overflow = "visible";
+              sourceClone.style.maxHeight = "none";
+            }
+          }
+        });
       }
-      return textParts.length ? textParts.join(" · ") : "—";
-    }
 
-    function getEstimateExportRows() {
-      return Array.from(estimateTableBodyEl.querySelectorAll("tr")).map((row) => {
-        const cells = Array.from(row.cells);
-        return [
-          getEstimateCellText(cells[0]),
-          getEstimateCellText(cells[1]),
-          getEstimateCellText(cells[2]),
-          getEstimateCellText(cells[3])
-        ];
+      const clone = sourceEl.cloneNode(true);
+      syncCloneInputValues(sourceEl, clone);
+      clone.style.width = `${sourceEl.scrollWidth}px`;
+      clone.style.height = `${sourceEl.scrollHeight}px`;
+      clone.style.maxHeight = "none";
+      clone.style.overflow = "visible";
+      const serialized = new XMLSerializer().serializeToString(clone);
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${sourceEl.scrollWidth}" height="${sourceEl.scrollHeight}">
+          <foreignObject width="100%" height="100%">${serialized}</foreignObject>
+        </svg>
+      `;
+      const image = new Image();
+      const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+      const canvas = document.createElement("canvas");
+      const scale = window.devicePixelRatio || 2;
+      canvas.width = sourceEl.scrollWidth * scale;
+      canvas.height = sourceEl.scrollHeight * scale;
+      const context = canvas.getContext("2d");
+      context.scale(scale, scale);
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = reject;
+        image.src = svgUrl;
       });
-    }
-
-    function wrapCanvasText(context, text, x, y, maxWidth, lineHeight) {
-      const words = String(text).split(" ");
-      const lines = [];
-      let line = "";
-      words.forEach((word) => {
-        const testLine = line ? `${line} ${word}` : word;
-        if (context.measureText(testLine).width > maxWidth && line) {
-          lines.push(line);
-          line = word;
-        } else {
-          line = testLine;
-        }
-      });
-      lines.push(line);
-      lines.forEach((lineText, index) => context.fillText(lineText, x, y + (index * lineHeight)));
-      return lines.length;
+      context.drawImage(image, 0, 0);
+      URL.revokeObjectURL(svgUrl);
+      return canvas;
     }
 
     async function saveEstimateScreenshot() {
       if (document.fonts && document.fonts.ready) await document.fonts.ready;
-      const headers = ["Статья", "Откуда / начало", "Куда / конец", "Стоимость"];
-      const rows = getEstimateExportRows();
-      const scale = window.devicePixelRatio || 1;
-      const padding = 28;
-      const titleHeight = 92;
-      const rowHeight = 74;
-      const footerHeight = 82;
-      const columnWidths = [260, 360, 360, 250];
-      const width = padding * 2 + columnWidths.reduce((sum, value) => sum + value, 0);
-      const height = padding * 2 + titleHeight + rowHeight * (rows.length + 1) + footerHeight;
-      const canvas = document.createElement("canvas");
-      canvas.width = width * scale;
-      canvas.height = height * scale;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      const context = canvas.getContext("2d");
-      context.scale(scale, scale);
-      context.fillStyle = "#0f1821";
-      context.fillRect(0, 0, width, height);
-      context.fillStyle = "#e7eef7";
-      context.font = "800 28px Arial, sans-serif";
-      context.fillText("Смета поездки", padding, padding + 30);
-      context.font = "600 16px Arial, sans-serif";
-      context.fillStyle = "#9fb0c2";
-      const summary = estimateResortSummaryEl.textContent.replace(/\s+/g, " ").trim();
-      if (summary) wrapCanvasText(context, summary, padding, padding + 60, width - padding * 2, 22);
-
-      let y = padding + titleHeight;
-      let x = padding;
-      context.fillStyle = "#142230";
-      context.fillRect(padding, y, width - padding * 2, rowHeight);
-      context.font = "800 16px Arial, sans-serif";
-      context.fillStyle = "#9fb0c2";
-      headers.forEach((header, index) => {
-        context.fillText(header, x + 14, y + 42);
-        x += columnWidths[index];
-      });
-      y += rowHeight;
-
-      rows.forEach((row, rowIndex) => {
-        x = padding;
-        context.fillStyle = rowIndex % 2 ? "#101b25" : "#0c151e";
-        context.fillRect(padding, y, width - padding * 2, rowHeight);
-        context.strokeStyle = "#26384a";
-        context.beginPath();
-        context.moveTo(padding, y);
-        context.lineTo(width - padding, y);
-        context.stroke();
-        row.forEach((value, index) => {
-          context.font = index === 0 ? "800 15px Arial, sans-serif" : "600 15px Arial, sans-serif";
-          context.fillStyle = index === 3 ? "#5bd08d" : "#e7eef7";
-          wrapCanvasText(context, value, x + 14, y + 28, columnWidths[index] - 28, 20);
-          x += columnWidths[index];
-        });
-        y += rowHeight;
-      });
-
-      context.fillStyle = "#5bd08d";
-      context.font = "900 24px Arial, sans-serif";
-      context.fillText(`Итого: ${estimateTotalEl.textContent}`, padding, y + 42);
-      context.font = "800 17px Arial, sans-serif";
-      context.fillText(estimateConvertedTotalEl.textContent, padding, y + 70);
-
+      const canvas = await renderEstimateDialogToCanvas();
       const link = document.createElement("a");
       link.download = `estimate-${new Date().toISOString().slice(0, 10)}.png`;
       link.href = canvas.toDataURL("image/png");
