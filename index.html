@@ -308,13 +308,21 @@
       cursor: pointer;
     }
     .estimate-body { padding: 16px 18px 18px; }
-    .estimate-table-wrap { overflow-x: auto; }
+    .estimate-table-wrap { overflow-x: visible; }
     .estimate-table {
       width: 100%;
-      min-width: 780px;
+      table-layout: fixed;
       border-collapse: collapse;
       font-size: 0.86rem;
     }
+    .estimate-table th:nth-child(1),
+    .estimate-table td:nth-child(1) { width: 16%; }
+    .estimate-table th:nth-child(2),
+    .estimate-table td:nth-child(2) { width: 28%; }
+    .estimate-table th:nth-child(3),
+    .estimate-table td:nth-child(3) { width: 28%; }
+    .estimate-table th:nth-child(4),
+    .estimate-table td:nth-child(4) { width: 28%; }
     .estimate-table th,
     .estimate-table td {
       border-bottom: 1px solid var(--line);
@@ -336,13 +344,17 @@
     .estimate-cell span { color: var(--muted); }
     .estimate-cost-cell {
       display: grid;
-      grid-template-columns: minmax(130px, 1fr) minmax(96px, 0.55fr);
+      grid-template-columns: minmax(0, 1fr) 78px;
       align-items: start;
       gap: 8px;
+      margin-top: 31px;
+    }
+    .estimate-table td > .estimate-cost {
+      margin-top: 31px;
     }
     .estimate-table input {
       width: 100%;
-      min-width: 150px;
+      min-width: 0;
       background: var(--control-bg);
       border: 1px solid var(--line);
       border-radius: 8px;
